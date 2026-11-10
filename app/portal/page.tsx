@@ -49,9 +49,9 @@ export default function PortalPage() {
         </div>
         <nav className="flex-1 px-4 py-6 space-y-2 text-sm">
           <a href="/portal" className="flex items-center gap-3 bg-[#0099cc] text-white px-4 py-3 rounded-lg"><Home className="w-5 h-5"/> ملخص الحساب</a>
-          <a href="#" className="flex items-center gap-3 hover:bg-slate-800 px-4 py-3 rounded-lg transition"><FileText className="w-5 h-5"/> طلباتي</a>
           <a href="/portal/transactions" className="flex items-center gap-3 hover:bg-slate-800 px-4 py-3 rounded-lg transition"><FolderOpen className="w-5 h-5"/> معاملاتي</a>
           <a href="/portal/institutions" className="flex items-center gap-3 hover:bg-slate-800 px-4 py-3 rounded-lg transition"><Building2 className="w-5 h-5"/> مؤسساتي</a>
+          <a href="/portal/notifications" className="flex items-center gap-3 hover:bg-slate-800 px-4 py-3 rounded-lg transition"><Bell className="w-5 h-5"/> التنبيهات</a>
         </nav>
         <div className="p-4 border-t border-slate-800">
           <button onClick={handleLogout} className="flex items-center gap-3 text-red-400 hover:text-red-300 transition w-full">
@@ -96,18 +96,14 @@ export default function PortalPage() {
                 </thead>
                 <tbody className="text-sm">
                   {requests.length === 0 ? (
-                    <tr>
-                      <td colSpan={4} className="p-8 text-center text-slate-500">لا توجد طلبات حتى الآن.</td>
-                    </tr>
+                    <tr><td colSpan={4} className="p-8 text-center text-slate-500">لا توجد طلبات حتى الآن.</td></tr>
                   ) : (
                     requests.map((req) => (
                       <tr key={req.id} className="border-b border-slate-50 hover:bg-slate-50">
                         <td className="p-4 text-slate-400 text-xs">#{req.id.split('-')[0]}</td>
                         <td className="p-4 font-bold text-slate-800">{req.services?.title}</td>
                         <td className="p-4 text-slate-500">{new Date(req.created_at).toLocaleDateString('ar-SA')}</td>
-                        <td className="p-4">
-                          <span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-xs font-bold">{req.status}</span>
-                        </td>
+                        <td className="p-4"><span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-xs font-bold">{req.status}</span></td>
                       </tr>
                     ))
                   )}
@@ -119,4 +115,4 @@ export default function PortalPage() {
       </main>
     </div>
   );
-              }
+}
