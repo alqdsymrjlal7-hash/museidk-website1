@@ -1,8 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { createClient } from "@supabase/supabase-js";
-import { LogOut, LayoutDashboard, Inbox, Users, Settings, Download } from "lucide-react";
-import Link from "next/link";
+import { LogOut, LayoutDashboard, Users, Download, Plus, X } from "lucide-react";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
@@ -11,7 +10,12 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 export default function AdminPage() {
   const [user, setUser] = useState<any>(null);
   const [requests, setRequests] = useState<any[]>([]);
+  const [clients, setClients] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  
+  // حالة نموذج إضافة المعاملة
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [newTx, setNewTx] = useState({ client_id: "", title: "", expiry_date: "" });
 
   useEffect(() => {
     const fetchAdminData = async () => {
@@ -19,23 +23,47 @@ export default function AdminPage() {
       if (!user) return window.location.href = "/login";
       setUser(user);
 
-      const { data } = await supabase
+      // جلب الطلبات
+      const { data: reqData } = await supabase
         .from("requests")
         .select(`*, profiles (email), services (title, price)`)
         .order("created_at", { ascending: false });
+      if (reqData) setRequests(reqData);
 
-      if (data) setRequests(data);
+      // جلب العملاء (لاختيارهم عند إضافة معاملة)
+      const { data: clientsData } = await supabase
+        .from("profiles")
+        .select("id, email")
+        .eq("role", "client");
+      if (clientsData) setClients(clientsData);
+
       setLoading(false);
     };
     fetchAdminData();
   }, []);
 
   const handleStatusChange = async (id: string, newStatus: string) => {
-    const { error } = await supabase.from("requests").update({ status: newStatus }).eq("id", id);
-    if (!error) {
-      setRequests(requests.map(r => r.id === id ? { ...r, status: newStatus } : r));
+    await supabase.from("requests").update({ status: newStatus }).eq("id", id);
+    setRequests(requests.map(r => r.id === id ? { ...r, status: newStatus } : r));
+  };
+
+  const handleAddTransaction = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const { error } = await supabase.from("transactions").insert([
+      {
+        client_id: newTx.client_id,
+        title: newTx.title,
+        expiry_date: newTx.expiry_date,
+        status: "سارية"
+      }
+    ]);
+
+    if (error) {
+      alert("خطأ: " + error.message);
     } else {
-      alert("حدث خطأ في التحديث");
+      alert("تمت إضافة المعاملة بنجاح للعميل!");
+      setShowAddForm(false);
+      setNewTx({ client_id: "", title: "", expiry_date: "" });
     }
   };
 
@@ -48,6 +76,8 @@ export default function AdminPage() {
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col md:flex-row" dir="rtl">
+      
+      {/* القائمة الجانبية */}
       <aside className="hidden md:flex w-64 bg-slate-900 text-slate-300 flex-col">
         <div className="h-20 flex items-center justify-center border-b border-slate-800"><h1 className="text-white font-bold text-xl">لوحة الإدارة</h1></div>
         <nav className="flex-1 px-4 py-6 space-y-2 text-sm">
@@ -58,13 +88,38 @@ export default function AdminPage() {
         </div>
       </aside>
 
+      {/* المحتوى الرئيسي */}
       <main className="flex-1 flex flex-col">
         <header className="h-20 bg-white border-b border-slate-200 flex items-center justify-between px-4 md:px-8">
           <h2 className="text-lg md:text-xl font-bold text-slate-800">لوحة تحكم المدير</h2>
-          <div className="flex items-center gap-4"><span className="text-sm font-bold text-slate-700 hidden sm:block">{user?.email}</span></div>
+          <button 
+            onClick={() => setShowAddForm(!showAddForm)}
+            className="bg-[#0099cc] text-white px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 hover:bg-[#007799]"
+          >
+            {showAddForm ? <X className="w-4 h-4"/> : <Plus className="w-4 h-4"/>}
+            {showAddForm ? "إلغاء" : "إضافة معاملة"}
+          </button>
         </header>
 
         <div className="p-4 md:p-8">
+          
+          {/* نموذج إضافة المعاملة */}
+          {showAddForm && (
+            <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm mb-8">
+              <h3 className="font-bold text-lg mb-4">إضافة معاملة لعميل</h3>
+              <form onSubmit={handleAddTransaction} className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <select required value={newTx.client_id} onChange={(e) => setNewTx({...newTx, client_id: e.target.value})} className="p-3 border rounded-lg">
+                  <option value="">اختر العميل...</option>
+                  {clients.map(c => <option key={c.id} value={c.id}>{c.email}</option>)}
+                </select>
+                <input required type="text" placeholder="اسم المعاملة (مثال: رخصة عمل)" value={newTx.title} onChange={(e) => setNewTx({...newTx, title: e.target.value})} className="p-3 border rounded-lg" />
+                <input required type="date" value={newTx.expiry_date} onChange={(e) => setNewTx({...newTx, expiry_date: e.target.value})} className="p-3 border rounded-lg" />
+                <button type="submit" className="bg-slate-900 text-white rounded-lg py-3 font-bold md:col-span-3">حفظ المعاملة</button>
+              </form>
+            </div>
+          )}
+
+          {/* جدول الطلبات */}
           <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
             <div className="p-4 border-b border-slate-200 bg-slate-50 font-bold text-slate-800">الطلبات الواردة</div>
             <div className="overflow-x-auto">
@@ -85,18 +140,12 @@ export default function AdminPage() {
                       <td className="p-4">
                         {req.file_url ? (
                           <a href={req.file_url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline flex items-center gap-1">
-                            <Download className="w-4 h-4"/> تحميل الملف
+                            <Download className="w-4 h-4"/> تحميل
                           </a>
-                        ) : (
-                          <span className="text-slate-400 text-xs">لا يوجد</span>
-                        )}
+                        ) : <span className="text-slate-400 text-xs">لا يوجد</span>}
                       </td>
                       <td className="p-4">
-                        <select 
-                          value={req.status} 
-                          onChange={(e) => handleStatusChange(req.id, e.target.value)}
-                          className="bg-slate-100 border border-slate-200 text-slate-700 text-sm rounded-lg focus:ring-[#0099cc] focus:border-[#0099cc] block w-full p-2"
-                        >
+                        <select value={req.status} onChange={(e) => handleStatusChange(req.id, e.target.value)} className="bg-slate-100 border border-slate-200 text-slate-700 text-sm rounded-lg block w-full p-2">
                           <option value="جديد">جديد</option>
                           <option value="قيد المراجعة">قيد المراجعة</option>
                           <option value="قيد التنفيذ">قيد التنفيذ</option>
@@ -113,4 +162,4 @@ export default function AdminPage() {
       </main>
     </div>
   );
-        }
+    }
