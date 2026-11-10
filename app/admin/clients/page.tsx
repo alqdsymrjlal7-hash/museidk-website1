@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { createClient } from "@supabase/supabase-js";
-import { LogOut, LayoutDashboard, Users, Search, Eye } from "lucide-react";
+import { LogOut, LayoutDashboard, Users, Search, Eye, Inbox } from "lucide-react";
 import Link from "next/link";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
@@ -39,7 +39,7 @@ export default function ClientsPage() {
 
   const filteredClients = clients.filter(c => 
     c.email?.toLowerCase().includes(search.toLowerCase()) || 
-    c.full_name?.toLowerCase().includes(search.toLowerCase())
+    (c.full_name && c.full_name.toLowerCase().includes(search.toLowerCase()))
   );
 
   if (loading) return <div className="min-h-screen flex items-center justify-center">جاري التحميل...</div>;
@@ -48,13 +48,17 @@ export default function ClientsPage() {
     <div className="min-h-screen bg-slate-50 flex flex-col md:flex-row" dir="rtl">
       {/* القائمة الجانبية */}
       <aside className="hidden md:flex w-64 bg-slate-900 text-slate-300 flex-col">
-        <div className="h-20 flex items-center justify-center border-b border-slate-800"><h1 className="text-white font-bold text-xl">لوحة الإدارة</h1></div>
+        <div className="h-20 flex items-center justify-center border-b border-slate-800">
+          <h1 className="text-white font-bold text-xl">لوحة الإدارة</h1>
+        </div>
         <nav className="flex-1 px-4 py-6 space-y-2 text-sm">
           <a href="/admin" className="flex items-center gap-3 hover:bg-slate-800 px-4 py-3 rounded-lg transition"><LayoutDashboard className="w-5 h-5"/> نظرة عامة</a>
           <a href="/admin/clients" className="flex items-center gap-3 bg-[#0099cc] text-white px-4 py-3 rounded-lg"><Users className="w-5 h-5"/> إدارة العملاء</a>
         </nav>
         <div className="p-4 border-t border-slate-800">
-          <button onClick={handleLogout} className="flex items-center gap-3 text-red-400 hover:text-red-300 transition w-full"><LogOut className="w-5 h-5" /> تسجيل الخروج</button>
+          <button onClick={handleLogout} className="flex items-center gap-3 text-red-400 hover:text-red-300 transition w-full">
+            <LogOut className="w-5 h-5" /> تسجيل الخروج
+          </button>
         </div>
       </aside>
 
@@ -72,7 +76,7 @@ export default function ClientsPage() {
               <Search className="w-5 h-5 text-slate-400" />
               <input 
                 type="text" 
-                placeholder="ابحث بالبريد الإلكتروني أو الاسم..." 
+                placeholder="ابحث بالبريد الإلكتروني..." 
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className="w-full bg-transparent focus:outline-none text-slate-700"
@@ -83,7 +87,7 @@ export default function ClientsPage() {
               <table className="w-full text-right min-w-[600px]">
                 <thead className="text-sm text-slate-500 border-b border-slate-100 bg-white">
                   <tr>
-                    <th className="p-4 font-medium">العميل</th>
+                    <th className="p-4 font-medium">العميل (البريد)</th>
                     <th className="p-4 font-medium">تاريخ التسجيل</th>
                     <th className="p-4 font-medium">الصلاحية</th>
                     <th className="p-4 font-medium">الإجراء</th>
@@ -101,7 +105,6 @@ export default function ClientsPage() {
                         <td className="p-4 text-slate-500">{new Date(client.created_at).toLocaleDateString('ar-SA')}</td>
                         <td className="p-4"><span className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-bold">{client.role}</span></td>
                         <td className="p-4">
-                          {/* سنقوم بربط هذا الزر بصفحة تفاصيل العميل لاحقاً */}
                           <button className="text-[#0099cc] hover:bg-blue-50 px-3 py-1 rounded font-bold transition flex items-center gap-1">
                             <Eye className="w-4 h-4"/> عرض
                           </button>
@@ -117,4 +120,4 @@ export default function ClientsPage() {
       </main>
     </div>
   );
-        }
+      }
