@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { createClient } from "@supabase/supabase-js";
-import { LogOut, LayoutDashboard, Users, Download, Plus, X } from "lucide-react";
+import { LogOut, LayoutDashboard, Users, Download, Plus, X, FileText } from "lucide-react";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
@@ -78,6 +78,7 @@ export default function AdminPage() {
         <div className="h-20 flex items-center justify-center border-b border-slate-800"><h1 className="text-white font-bold text-xl">لوحة الإدارة</h1></div>
         <nav className="flex-1 px-4 py-6 space-y-2 text-sm">
           <a href="/admin" className="flex items-center gap-3 bg-[#0099cc] text-white px-4 py-3 rounded-lg"><LayoutDashboard className="w-5 h-5"/> نظرة عامة</a>
+          <a href="/admin/transactions" className="flex items-center gap-3 hover:bg-slate-800 px-4 py-3 rounded-lg transition"><FileText className="w-5 h-5"/> إدارة المعاملات</a>
           <a href="/admin/clients" className="flex items-center gap-3 hover:bg-slate-800 px-4 py-3 rounded-lg transition"><Users className="w-5 h-5"/> إدارة العملاء</a>
         </nav>
         <div className="p-4 border-t border-slate-800">
@@ -159,4 +160,4 @@ export default function AdminPage() {
       </main>
     </div>
   );
-    }
+        }
