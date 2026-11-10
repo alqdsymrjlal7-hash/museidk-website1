@@ -22,7 +22,6 @@ export default function PortalPage() {
       }
       setUser(user);
 
-      // جلب طلبات العميل من قاعدة البيانات
       const { data } = await supabase
         .from("requests")
         .select(`*, services (title, price)`)
@@ -44,7 +43,6 @@ export default function PortalPage() {
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col md:flex-row" dir="rtl">
-      {/* القائمة الجانبية */}
       <aside className="hidden md:flex w-64 bg-slate-900 text-slate-300 flex-col">
         <div className="h-20 flex items-center justify-center border-b border-slate-800">
           <h1 className="text-white font-bold text-xl">بوابة العميل</h1>
@@ -61,7 +59,6 @@ export default function PortalPage() {
         </div>
       </aside>
 
-      {/* المحتوى الرئيسي */}
       <main className="flex-1 flex flex-col">
         <header className="h-20 bg-white border-b border-slate-200 flex items-center justify-between px-4 md:px-8">
           <h2 className="text-lg md:text-xl font-bold text-slate-800">مرحباً، {user?.email?.split('@')[0]}</h2>
@@ -69,7 +66,6 @@ export default function PortalPage() {
         </header>
 
         <div className="p-4 md:p-8">
-          {/* الإحصائيات */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mb-8">
             <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
               <p className="text-slate-500 text-sm mb-1">الطلبات الجارية</p>
@@ -85,7 +81,6 @@ export default function PortalPage() {
             </Link>
           </div>
 
-          {/* جدول الطلبات */}
           <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
             <div className="p-4 border-b border-slate-200 bg-slate-50 font-bold text-slate-800">أحدث الطلبات</div>
             <div className="overflow-x-auto">
@@ -123,4 +118,4 @@ export default function PortalPage() {
       </main>
     </div>
   );
-            }
+                }
