@@ -1,8 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { createClient } from "@supabase/supabase-js";
-import { LogOut, LayoutDashboard, Users, FileText, Download, AlertCircle, Plus } from "lucide-react";
-import Link from "next/link";
+import { LogOut, LayoutDashboard, Users, FileText, AlertCircle } from "lucide-react";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
