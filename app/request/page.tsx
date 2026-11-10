@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { createClient } from "@supabase/supabase-js";
-import { ArrowRight, Upload } from "lucide-react";
+import { ArrowRight, Upload, Building2 } from "lucide-react";
 import Link from "next/link";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
@@ -10,7 +10,9 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 
 export default function RequestServicePage() {
   const [services, setServices] = useState<any[]>([]);
+  const [institutions, setInstitutions] = useState<any[]>([]);
   const [selectedService, setSelectedService] = useState("");
+  const [selectedInstitution, setSelectedInstitution] = useState("");
   const [notes, setNotes] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [user, setUser] = useState<any>(null);
@@ -27,9 +29,15 @@ export default function RequestServicePage() {
       const { data } = await supabase.from("services").select("*").eq("is_active", true);
       if (data) setServices(data);
     };
+    const getInstitutions = async () => {
+      const { data } = await supabase.from("institutions").select("*").eq("owner_id", user?.id);
+      if (data) setInstitutions(data);
+    };
+    
     getUser();
     getServices();
-  }, []);
+    if (user) getInstitutions();
+  }, [user]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -52,13 +60,14 @@ export default function RequestServicePage() {
       fileUrl = publicUrl;
     }
 
-    // حفظ الطلب مع رابط الملف
+    // إرسال الطلب مع ربط المؤسسة
     const { error } = await supabase.from("requests").insert([
       {
         client_id: user.id,
         service_id: selectedService,
+        institution_id: selectedInstitution || null, // ربط المؤسسة إن وجدت
         notes: notes,
-        file_url: fileUrl, // تم إضافة رابط الملف هنا
+        file_url: fileUrl,
         status: "جديد"
       }
     ]);
@@ -84,17 +93,35 @@ export default function RequestServicePage() {
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-slate-100 space-y-6">
+            
+            {/* اختيار المؤسسة */}
+            {institutions.length > 0 && (
+              <div>
+                <label className="flex items-center gap-2 text-sm font-bold text-slate-700 mb-2"><Building2 className="w-4 h-4"/> اختر المؤسسة (اختياري)</label>
+                <select 
+                  value={selectedInstitution} 
+                  onChange={(e) => setSelectedInstitution(e.target.value)} 
+                  className="w-full px-4 py-3 rounded-lg border border-slate-200 focus:outline-none focus:border-[#0099cc] bg-white"
+                >
+                  <option value="">طلب شخصي (بدون مؤسسة)</option>
+                  {institutions.map(inst => <option key={inst.id} value={inst.id}>{inst.name}</option>)}
+                </select>
+              </div>
+            )}
+
             <div>
               <label className="block text-sm font-bold text-slate-700 mb-2">اختر الخدمة المطلوبة</label>
               <select required value={selectedService} onChange={(e) => setSelectedService(e.target.value)} className="w-full px-4 py-3 rounded-lg border border-slate-200 focus:outline-none focus:border-[#0099cc] bg-white">
                 <option value="">-- اختر من القائمة --</option>
-                {services.map(s => <option key={s.id} value={s.id}>{s.title} - {s.price}</option>)}
+                {services.map(s => <option key={s.id} value={s.id}>{s.title} {s.price ? `- ${s.price}` : ''}</option>)}
               </select>
             </div>
+            
             <div>
               <label className="block text-sm font-bold text-slate-700 mb-2">ملاحظات إضافية</label>
               <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={3} className="w-full px-4 py-3 rounded-lg border border-slate-200 focus:outline-none focus:border-[#0099cc]"></textarea>
             </div>
+            
             <div>
               <label className="block text-sm font-bold text-slate-700 mb-2">رفع المستندات</label>
               <div className="border-2 border-dashed border-slate-300 rounded-lg p-6 text-center hover:bg-slate-50 transition cursor-pointer relative">
@@ -103,6 +130,7 @@ export default function RequestServicePage() {
                 <p className="text-sm text-slate-500">{file ? file.name : "اضغط لاختيار ملف"}</p>
               </div>
             </div>
+            
             <button type="submit" disabled={loading} className="w-full bg-[#0099cc] text-white font-bold py-3 rounded-lg hover:bg-[#007799] transition disabled:opacity-50">
               {loading ? "جاري الإرسال..." : "تأكيد وإرسال الطلب"}
             </button>
@@ -111,4 +139,4 @@ export default function RequestServicePage() {
       </div>
     </div>
   );
-              }
+      }
