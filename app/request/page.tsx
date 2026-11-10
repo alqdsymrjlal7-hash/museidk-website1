@@ -12,6 +12,7 @@ export default function RequestServicePage() {
   const [services, setServices] = useState<any[]>([]);
   const [selectedService, setSelectedService] = useState("");
   const [notes, setNotes] = useState("");
+  const [file, setFile] = useState<File | null>(null);
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -19,7 +20,6 @@ export default function RequestServicePage() {
   useEffect(() => {
     const getUser = async () => {
       const { data: { user } } = await supabase.auth.getUser();
-      // إذا لم يكن مسجل، نرجعه لتسجيل الدخول
       if (!user) window.location.href = "/login?redirect=/request";
       setUser(user);
     };
@@ -35,6 +35,30 @@ export default function RequestServicePage() {
     e.preventDefault();
     setLoading(true);
     
+    let fileUrl = "";
+
+    // 1. رفع الملف إن وجد
+    if (file) {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Math.random()}.${fileExt}`;
+      const filePath = `${user.id}/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from("attachments")
+        .upload(filePath, file);
+
+      if (uploadError) {
+        alert("خطأ في رفع الملف: " + uploadError.message);
+        setLoading(false);
+        return;
+      }
+      
+      // الحصول على رابط الملف
+      const { data: { publicUrl } } = supabase.storage.from("attachments").getPublicUrl(filePath);
+      fileUrl = publicUrl;
+    }
+
+    // 2. إرسال الطلب لقاعدة البيانات
     const { error } = await supabase.from("requests").insert([
       {
         client_id: user.id,
@@ -44,6 +68,8 @@ export default function RequestServicePage() {
       }
     ]);
 
+    // ملاحظة: يمكنك لاحقاً ربط رابط الملف بالطلب في جدول documents
+    
     setLoading(false);
     if (error) {
       alert("حدث خطأ: " + error.message);
@@ -100,10 +126,15 @@ export default function RequestServicePage() {
             </div>
 
             <div>
-              <label className="block text-sm font-bold text-slate-700 mb-2">المرفقات (اختياري)</label>
-              <div className="border-2 border-dashed border-slate-300 rounded-lg p-6 text-center hover:bg-slate-50 transition cursor-pointer">
+              <label className="block text-sm font-bold text-slate-700 mb-2">رفع المستندات (اختياري)</label>
+              <div className="border-2 border-dashed border-slate-300 rounded-lg p-6 text-center hover:bg-slate-50 transition cursor-pointer relative">
+                <input 
+                  type="file" 
+                  onChange={(e) => setFile(e.target.files ? e.target.files[0] : null)}
+                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                />
                 <Upload className="w-8 h-8 text-slate-400 mx-auto mb-2" />
-                <p className="text-sm text-slate-500">اضغط لرفع الملفات (سيتم تفعيله قريباً)</p>
+                <p className="text-sm text-slate-500">{file ? file.name : "اضغط لاختيار ملف لرفعه"}</p>
               </div>
             </div>
 
@@ -115,4 +146,4 @@ export default function RequestServicePage() {
       </div>
     </div>
   );
-                }
+        }
