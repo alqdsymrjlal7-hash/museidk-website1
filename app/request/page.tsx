@@ -37,107 +37,72 @@ export default function RequestServicePage() {
     
     let fileUrl = "";
 
-    // 1. رفع الملف إن وجد
     if (file) {
       const fileExt = file.name.split('.').pop();
       const fileName = `${Math.random()}.${fileExt}`;
       const filePath = `${user.id}/${fileName}`;
 
-      const { error: uploadError } = await supabase.storage
-        .from("attachments")
-        .upload(filePath, file);
-
+      const { error: uploadError } = await supabase.storage.from("attachments").upload(filePath, file);
       if (uploadError) {
         alert("خطأ في رفع الملف: " + uploadError.message);
         setLoading(false);
         return;
       }
-      
-      // الحصول على رابط الملف
       const { data: { publicUrl } } = supabase.storage.from("attachments").getPublicUrl(filePath);
       fileUrl = publicUrl;
     }
 
-    // 2. إرسال الطلب لقاعدة البيانات
+    // حفظ الطلب مع رابط الملف
     const { error } = await supabase.from("requests").insert([
       {
         client_id: user.id,
         service_id: selectedService,
         notes: notes,
+        file_url: fileUrl, // تم إضافة رابط الملف هنا
         status: "جديد"
       }
     ]);
-
-    // ملاحظة: يمكنك لاحقاً ربط رابط الملف بالطلب في جدول documents
     
     setLoading(false);
-    if (error) {
-      alert("حدث خطأ: " + error.message);
-    } else {
-      setSuccess(true);
-    }
+    if (error) alert("حدث خطأ: " + error.message);
+    else setSuccess(true);
   };
 
   return (
     <div className="min-h-screen bg-slate-50 p-4 md:p-8" dir="rtl">
       <div className="max-w-3xl mx-auto">
         <div className="mb-6 flex items-center gap-4">
-          <Link href="/portal" className="p-2 bg-white rounded-full shadow hover:bg-slate-100">
-            <ArrowRight className="w-5 h-5 text-slate-600" />
-          </Link>
+          <Link href="/portal" className="p-2 bg-white rounded-full shadow hover:bg-slate-100"><ArrowRight className="w-5 h-5 text-slate-600" /></Link>
           <h1 className="text-2xl font-bold text-slate-800">طلب خدمة جديدة</h1>
         </div>
 
         {success ? (
           <div className="bg-white p-8 rounded-2xl shadow-sm text-center border border-slate-100">
-            <div className="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
-              <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path></svg>
-            </div>
+            <div className="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-4"><svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path></svg></div>
             <h2 className="text-xl font-bold text-slate-800 mb-2">تم إرسال طلبك بنجاح!</h2>
-            <p className="text-slate-500 mb-6">سيقوم فريقنا بمراجعة طلبك والتواصل معك قريباً.</p>
-            <Link href="/portal" className="bg-[#0099cc] text-white px-6 py-2 rounded-lg font-bold">العودة للبوابة</Link>
+            <Link href="/portal" className="bg-[#0099cc] text-white px-6 py-2 rounded-lg font-bold mt-4 inline-block">العودة للبوابة</Link>
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-slate-100 space-y-6">
             <div>
               <label className="block text-sm font-bold text-slate-700 mb-2">اختر الخدمة المطلوبة</label>
-              <select 
-                required
-                value={selectedService}
-                onChange={(e) => setSelectedService(e.target.value)}
-                className="w-full px-4 py-3 rounded-lg border border-slate-200 focus:outline-none focus:border-[#0099cc] bg-white"
-              >
+              <select required value={selectedService} onChange={(e) => setSelectedService(e.target.value)} className="w-full px-4 py-3 rounded-lg border border-slate-200 focus:outline-none focus:border-[#0099cc] bg-white">
                 <option value="">-- اختر من القائمة --</option>
-                {services.map(s => (
-                  <option key={s.id} value={s.id}>{s.title} - {s.price}</option>
-                ))}
+                {services.map(s => <option key={s.id} value={s.id}>{s.title} - {s.price}</option>)}
               </select>
             </div>
-
             <div>
-              <label className="block text-sm font-bold text-slate-700 mb-2">ملاحظات إضافية (اختياري)</label>
-              <textarea 
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                rows={4}
-                className="w-full px-4 py-3 rounded-lg border border-slate-200 focus:outline-none focus:border-[#0099cc]"
-                placeholder="اكتب أي تفاصيل تود إضافتها هنا..."
-              ></textarea>
+              <label className="block text-sm font-bold text-slate-700 mb-2">ملاحظات إضافية</label>
+              <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={3} className="w-full px-4 py-3 rounded-lg border border-slate-200 focus:outline-none focus:border-[#0099cc]"></textarea>
             </div>
-
             <div>
-              <label className="block text-sm font-bold text-slate-700 mb-2">رفع المستندات (اختياري)</label>
+              <label className="block text-sm font-bold text-slate-700 mb-2">رفع المستندات</label>
               <div className="border-2 border-dashed border-slate-300 rounded-lg p-6 text-center hover:bg-slate-50 transition cursor-pointer relative">
-                <input 
-                  type="file" 
-                  onChange={(e) => setFile(e.target.files ? e.target.files[0] : null)}
-                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                />
+                <input type="file" onChange={(e) => setFile(e.target.files ? e.target.files[0] : null)} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
                 <Upload className="w-8 h-8 text-slate-400 mx-auto mb-2" />
-                <p className="text-sm text-slate-500">{file ? file.name : "اضغط لاختيار ملف لرفعه"}</p>
+                <p className="text-sm text-slate-500">{file ? file.name : "اضغط لاختيار ملف"}</p>
               </div>
             </div>
-
             <button type="submit" disabled={loading} className="w-full bg-[#0099cc] text-white font-bold py-3 rounded-lg hover:bg-[#007799] transition disabled:opacity-50">
               {loading ? "جاري الإرسال..." : "تأكيد وإرسال الطلب"}
             </button>
@@ -146,4 +111,4 @@ export default function RequestServicePage() {
       </div>
     </div>
   );
-        }
+              }
