@@ -112,4 +112,4 @@ export default function InstitutionsPage() {
       </div>
     </div>
   );
-                              }
+  }
