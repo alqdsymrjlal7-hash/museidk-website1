@@ -1,4 +1,4 @@
-import { ArrowLeft, MessageCircle, Facebook, Instagram, MapPin, Phone, Clock } from "lucide-react";
+import { ArrowLeft, MessageCircle, Facebook, Instagram, MapPin, Phone } from "lucide-react";
 
 export default function Home() {
   const services = [
@@ -35,9 +35,10 @@ export default function Home() {
 
           <div className="flex items-center gap-4">
             <button className="text-sm font-bold text-slate-500 hover:text-[#0099cc]">EN</button>
-            <button className="bg-[#0099cc] text-white px-6 py-2.5 rounded-full font-bold hover:bg-[#007799] transition shadow-lg shadow-blue-200">
+            {/* الزر المعدل هنا */}
+            <a href="/login" className="bg-[#0099cc] text-white px-6 py-2.5 rounded-full font-bold hover:bg-[#007799] transition shadow-lg shadow-blue-200">
               تسجيل الدخول
-            </button>
+            </a>
           </div>
         </div>
       </nav>
@@ -125,4 +126,4 @@ export default function Home() {
       </a>
     </main>
   );
-}
+      }
