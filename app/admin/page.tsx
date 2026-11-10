@@ -13,7 +13,6 @@ export default function AdminPage() {
   const [clients, setClients] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   
-  // حالة نموذج إضافة المعاملة
   const [showAddForm, setShowAddForm] = useState(false);
   const [newTx, setNewTx] = useState({ client_id: "", title: "", expiry_date: "" });
 
@@ -23,14 +22,12 @@ export default function AdminPage() {
       if (!user) return window.location.href = "/login";
       setUser(user);
 
-      // جلب الطلبات
       const { data: reqData } = await supabase
         .from("requests")
         .select(`*, profiles (email), services (title, price)`)
         .order("created_at", { ascending: false });
       if (reqData) setRequests(reqData);
 
-      // جلب العملاء (لاختيارهم عند إضافة معاملة)
       const { data: clientsData } = await supabase
         .from("profiles")
         .select("id, email")
@@ -58,9 +55,8 @@ export default function AdminPage() {
       }
     ]);
 
-    if (error) {
-      alert("خطأ: " + error.message);
-    } else {
+    if (error) alert("خطأ: " + error.message);
+    else {
       alert("تمت إضافة المعاملة بنجاح للعميل!");
       setShowAddForm(false);
       setNewTx({ client_id: "", title: "", expiry_date: "" });
@@ -82,6 +78,7 @@ export default function AdminPage() {
         <div className="h-20 flex items-center justify-center border-b border-slate-800"><h1 className="text-white font-bold text-xl">لوحة الإدارة</h1></div>
         <nav className="flex-1 px-4 py-6 space-y-2 text-sm">
           <a href="/admin" className="flex items-center gap-3 bg-[#0099cc] text-white px-4 py-3 rounded-lg"><LayoutDashboard className="w-5 h-5"/> نظرة عامة</a>
+          <a href="/admin/clients" className="flex items-center gap-3 hover:bg-slate-800 px-4 py-3 rounded-lg transition"><Users className="w-5 h-5"/> إدارة العملاء</a>
         </nav>
         <div className="p-4 border-t border-slate-800">
           <button onClick={handleLogout} className="flex items-center gap-3 text-red-400 hover:text-red-300 transition w-full"><LogOut className="w-5 h-5" /> تسجيل الخروج</button>
