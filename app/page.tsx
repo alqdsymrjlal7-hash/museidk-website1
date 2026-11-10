@@ -1,4 +1,4 @@
-import { ArrowLeft, MessageCircle, Facebook, Instagram, MapPin, Phone } from "lucide-react";
+import { MessageCircle, Facebook, Instagram, MapPin, Phone } from "lucide-react";
 import Link from "next/link";
 
 export default function Home() {
@@ -65,7 +65,10 @@ export default function Home() {
                 <p className="text-slate-500 text-xs mb-4 flex-grow">{service.desc}</p>
                 <div className="flex justify-between items-center mt-auto pt-4 border-t border-slate-100">
                   <span className="text-[#0099cc] font-extrabold text-lg">{service.price}</span>
-                  <button className="bg-white text-[#0099cc] border border-[#0099cc] px-3 py-1.5 rounded-lg text-sm font-bold hover:bg-[#0099cc] hover:text-white transition">طلب الخدمة</button>
+                  {/* زر طلب الخدمة يوجه لتسجيل الدخول أولاً ثم لصفحة الطلب */}
+                  <Link href="/login?redirect=/request" className="bg-white text-[#0099cc] border border-[#0099cc] px-3 py-1.5 rounded-lg text-sm font-bold hover:bg-[#0099cc] hover:text-white transition">
+                    طلب الخدمة
+                  </Link>
                 </div>
               </div>
             ))}
@@ -94,4 +97,4 @@ export default function Home() {
       <a href="https://wa.me/966535717061" target="_blank" className="fixed bottom-6 left-6 bg-[#25D366] text-white p-4 rounded-full shadow-2xl hover:scale-110 transition z-50"><MessageCircle className="w-8 h-8" /></a>
     </main>
   );
-        }
+    }
