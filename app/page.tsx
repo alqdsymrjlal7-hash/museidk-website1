@@ -1,47 +1,85 @@
+"use client";
+import { useState } from "react";
 import { MessageCircle, Facebook, Instagram, MapPin, Phone, Building2, Globe } from "lucide-react";
 import Link from "next/link";
 
 export default function Home() {
+  const [lang, setLang] = useState<"ar" | "en">("ar");
+
+  const toggleLang = () => {
+    setLang(lang === "ar" ? "en" : "ar");
+  };
+
+  // قاموس الترجمة
+  const t = {
+    ar: {
+      home: "الرئيسية",
+      services: "خدماتنا",
+      login: "تسجيل الدخول",
+      reqService: "طلب خدمة جديدة",
+      business: "منصة أصحاب الأعمال",
+      servicesTitle: "خدماتنا الإلكترونية المميزة",
+      servicesDesc: "اختر الخدمة التي تناسبك، ارفع مستنداتك، وتابع طلبك بكل شفافية.",
+      reqBtn: "طلب الخدمة",
+      contact: "تواصل معنا",
+      address: "السعودية - مكة المكرمة - القنفذة - المخيلف - دوقه - الشارع العام",
+      rights: "© 2024 مساعدك الرقمي. جميع الحقوق محفوظة.",
+    },
+    en: {
+      home: "Home",
+      services: "Services",
+      login: "Login",
+      reqService: "Request Service",
+      business: "Business Portal",
+      servicesTitle: "Our Premium Services",
+      servicesDesc: "Choose the service you need, upload your documents, and track your request transparently.",
+      reqBtn: "Request",
+      contact: "Contact Us",
+      address: "Saudi Arabia - Makkah - Al Qunfudhah - Al Mukhaylif - Dougha - Main Street",
+      rights: "© 2024 Museidk. All rights reserved.",
+    }
+  };
+
   const services = [
-    { title: "تجديد الهوية الوطنية", price: "50 ر.س", desc: "إتمام إجراءات تجديد الهوية الوطنية بكل سهولة ويسر عبر منصتنا.", image: "/images/service-1.jpg" },
-    { title: "فتح حسابات بنكية", price: "50 ر.س", desc: "خدمة فتح الحسابات في كافة البنوك السعودية بسرعة واحترافية عالية.", image: "/images/service-2.jpg" },
-    { title: "إصدار وثيقة العمل الحر", price: "50 ر.س", desc: "استخراج وثيقة العمل الحر الخاصة بك بكل سهولة.", image: "/images/service-3.jpg" },
-    { title: "فتح سجلات تجارية", price: "حسب الاشتراطات", desc: "فتح سجلات تجارية للجمعيات والمؤسسات حسب اشتراطات المركز الوطني ووزارة التجارة.", image: "/images/service-4.jpg" },
-    { title: "حساب المواطن", price: "حسب الخدمة", desc: "تسجيل في حساب المواطن، تقديم اعتراض، ومتابعة الطلبات.", image: "/images/service-5.jpg" },
-    { title: "تصميم موشن جرافكس", price: "1,200 ر.س", desc: "ابتكر فيديوهات تسويقية جذابة تزيد من تفاعل عملائك مع علامتك التجارية.", image: "/images/service-6.jpg" },
-    { title: "تصميم شعارات احترافية", price: "450 ر.س", desc: "تصميم شعارات مبتكرة تعبر عن هوية علامتك التجارية.", image: "/images/service-7.jpg" },
-    { title: "تصميم هوية بصرية", price: "1,200 ر.س", desc: "نتكفل بمساعدتكم في تحقيق رؤية علامتكم التجارية بالكامل.", image: "/images/service-8.jpg" },
+    { title: "تجديد الهوية الوطنية", titleEn: "National ID Renewal", price: "50 ر.س", priceEn: "50 SAR", desc: "إتمام إجراءات تجديد الهوية الوطنية بكل سهولة ويسر عبر منصتنا.", descEn: "Complete your National ID renewal easily through our platform.", image: "/images/service-1.jpg" },
+    { title: "فتح حسابات بنكية", titleEn: "Open Bank Account", price: "50 ر.س", priceEn: "50 SAR", desc: "خدمة فتح الحسابات في كافة البنوك السعودية بسرعة واحترافية عالية.", descEn: "Open accounts in all Saudi banks quickly and professionally.", image: "/images/service-2.jpg" },
+    { title: "إصدار وثيقة العمل الحر", titleEn: "Freelance Certificate", price: "50 ر.س", priceEn: "50 SAR", desc: "استخراج وثيقة العمل الحر الخاصة بك بكل سهولة.", descEn: "Extract your freelance work document easily.", image: "/images/service-3.jpg" },
+    { title: "فتح سجلات تجارية", titleEn: "Commercial Registration", price: "حسب الاشتراطات", priceEn: "Upon request", desc: "فتح سجلات تجارية للجمعيات والمؤسسات حسب اشتراطات المركز الوطني ووزارة التجارة.", descEn: "Open commercial registrations for associations per Ministry requirements.", image: "/images/service-4.jpg" },
+    { title: "حساب المواطن", titleEn: "Citizen Account", price: "حسب الخدمة", priceEn: "Per service", desc: "تسجيل في حساب المواطن، تقديم اعتراض، ومتابعة الطلبات.", descEn: "Register for Citizen Account, submit objections, and track requests.", image: "/images/service-5.jpg" },
+    { title: "تصميم موشن جرافكس", titleEn: "Motion Graphics", price: "1,200 ر.س", priceEn: "1,200 SAR", desc: "ابتكر فيديوهات تسويقية جذابة تزيد من تفاعل عملائك مع علامتك التجارية.", descEn: "Create engaging marketing videos to increase your brand interaction.", image: "/images/service-6.jpg" },
+    { title: "تصميم شعارات احترافية", titleEn: "Logo Design", price: "450 ر.س", priceEn: "450 SAR", desc: "تصميم شعارات مبتكرة تعبر عن هوية علامتك التجارية.", descEn: "Innovative logo designs that express your brand identity.", image: "/images/service-7.jpg" },
+    { title: "تصميم هوية بصرية", titleEn: "Visual Identity", price: "1,200 ر.س", priceEn: "1,200 SAR", desc: "نتكفل بمساعدتكم في تحقيق رؤية علامتكم التجارية بالكامل.", descEn: "We help you achieve your brand vision completely.", image: "/images/service-8.jpg" },
   ];
 
   return (
-    <main className="min-h-screen flex flex-col bg-slate-50 text-slate-800">
+    <main className="min-h-screen flex flex-col bg-slate-50 text-slate-800" dir={lang === "ar" ? "rtl" : "ltr"}>
       
       {/* 1. الشريط العلوي المحدث */}
       <nav className="fixed w-full top-0 z-50 bg-white shadow-sm border-b border-slate-200">
         <div className="max-w-7xl mx-auto px-4 h-20 flex justify-between items-center">
           
-          {/* الشعار - تمت إضافة mix-blend-multiply لإخفاء الخلفية البيضاء */}
+          {/* الشعار */}
           <div className="flex items-center gap-2 cursor-pointer">
-            <img src="/images/logo.png" alt="شعار مساعدك الرقمي" className="h-14 md:h-16 w-auto object-contain mix-blend-multiply" />
+            <img src="/images/logo.png" alt="Logo" className="h-14 md:h-16 w-auto object-contain mix-blend-multiply" />
             <div className="hidden sm:flex flex-col">
-              <h1 className="font-bold text-lg text-[#0099cc] leading-tight">مساعدك</h1>
-              <span className="text-xs text-slate-500 font-medium">الرقمي</span>
+              <h1 className="font-bold text-lg text-[#0099cc] leading-tight">{lang === "ar" ? "مساعدك" : "Museidk"}</h1>
+              <span className="text-xs text-slate-500 font-medium">{lang === "ar" ? "الرقمي" : "Digital"}</span>
             </div>
           </div>
           
           {/* روابط الوسط */}
           <div className="hidden md:flex gap-8 font-medium">
-            <a href="#" className="text-[#0099cc] font-bold">الرئيسية</a>
-            <a href="#services" className="text-slate-600 hover:text-[#0099cc] transition">خدماتنا</a>
+            <a href="#" className="text-[#0099cc] font-bold">{t[lang].home}</a>
+            <a href="#services" className="text-slate-600 hover:text-[#0099cc] transition">{t[lang].services}</a>
           </div>
 
           {/* أزرار الدخول واللغة */}
           <div className="flex items-center gap-3 md:gap-4">
-            <button className="flex items-center gap-1 text-sm font-bold text-slate-600 hover:text-[#0099cc] px-2 py-1 rounded-md transition">
-              <Globe className="w-4 h-4" /> EN
+            <button onClick={toggleLang} className="flex items-center gap-1 text-sm font-bold text-slate-600 hover:text-[#0099cc] px-2 py-1 rounded-md transition">
+              <Globe className="w-4 h-4" /> {lang === "ar" ? "EN" : "عربي"}
             </button>
             <Link href="/login" className="bg-[#0099cc] text-white px-5 py-2 md:px-6 md:py-2.5 rounded-full font-bold hover:bg-[#007799] transition shadow-md">
-              تسجيل الدخول
+              {t[lang].login}
             </Link>
           </div>
         </div>
@@ -49,21 +87,14 @@ export default function Home() {
 
       {/* 2. البانر والأزرار الرئيسية */}
       <section className="w-full mt-20 flex-grow flex flex-col items-center bg-white overflow-hidden">
+        <img src="/images/hero.jpg" alt="Hero" className="w-full h-auto object-contain" />
         
-        {/* صورة البانر */}
-        <img 
-          src="/images/hero.jpg" 
-          alt="مساعدك الرقمي للخدمات الإلكترونية" 
-          className="w-full h-auto object-contain"
-        />
-        
-        {/* أزرار الحركة (Call to Action) */}
         <div className="flex flex-col sm:flex-row gap-4 py-8 px-4 w-full max-w-4xl justify-center -mt-6 relative z-10">
            <Link href="/login?redirect=/request" className="flex-1 bg-[#0099cc] text-white text-center px-6 py-3.5 rounded-xl font-bold text-lg hover:bg-[#007799] transition shadow-lg flex items-center justify-center gap-2">
-              طلب خدمة جديدة
+              {t[lang].reqService}
            </Link>
            <Link href="/login?redirect=/portal/institutions" className="flex-1 bg-slate-900 text-white text-center px-6 py-3.5 rounded-xl font-bold text-lg hover:bg-slate-800 transition shadow-lg flex items-center justify-center gap-2">
-              <Building2 className="w-5 h-5" /> منصة أصحاب الأعمال
+              <Building2 className="w-5 h-5" /> {t[lang].business}
            </Link>
         </div>
       </section>
@@ -72,8 +103,8 @@ export default function Home() {
       <section id="services" className="py-16 bg-slate-50">
         <div className="max-w-7xl mx-auto px-4">
           <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-extrabold text-slate-900 mb-4">خدماتنا الإلكترونية المميزة</h2>
-            <p className="text-slate-600 max-w-2xl mx-auto">اختر الخدمة التي تناسبك، ارفع مستنداتك، وتابع طلبك بكل شفافية.</p>
+            <h2 className="text-3xl md:text-4xl font-extrabold text-slate-900 mb-4">{t[lang].servicesTitle}</h2>
+            <p className="text-slate-600 max-w-2xl mx-auto">{t[lang].servicesDesc}</p>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -82,12 +113,12 @@ export default function Home() {
                 <div className="w-full h-40 bg-slate-100 rounded-xl mb-4 overflow-hidden relative">
                   <img src={service.image} alt={service.title} className="w-full h-full object-cover group-hover:scale-105 transition duration-500" />
                 </div>
-                <h3 className="text-lg font-bold text-slate-900 mb-2">{service.title}</h3>
-                <p className="text-slate-500 text-xs mb-4 flex-grow">{service.desc}</p>
+                <h3 className="text-lg font-bold text-slate-900 mb-2">{lang === "ar" ? service.title : service.titleEn}</h3>
+                <p className="text-slate-500 text-xs mb-4 flex-grow">{lang === "ar" ? service.desc : service.descEn}</p>
                 <div className="flex justify-between items-center mt-auto pt-4 border-t border-slate-100">
-                  <span className="text-[#0099cc] font-extrabold text-lg">{service.price}</span>
+                  <span className="text-[#0099cc] font-extrabold text-lg">{lang === "ar" ? service.price : service.priceEn}</span>
                   <Link href="/login?redirect=/request" className="bg-white text-[#0099cc] border border-[#0099cc] px-3 py-1.5 rounded-lg text-sm font-bold hover:bg-[#0099cc] hover:text-white transition">
-                    طلب الخدمة
+                    {t[lang].reqBtn}
                   </Link>
                 </div>
               </div>
@@ -100,19 +131,22 @@ export default function Home() {
       <footer id="contact" className="bg-slate-900 text-slate-300 py-12 mt-auto">
         <div className="max-w-7xl mx-auto px-4 grid grid-cols-1 md:grid-cols-3 gap-8 text-center md:text-right">
           <div>
-            <h3 className="text-white text-xl font-bold mb-4">مساعدك الرقمي</h3>
+            <h3 className="text-white text-xl font-bold mb-4">{lang === "ar" ? "مساعدك الرقمي" : "Museidk"}</h3>
             <div className="flex justify-center md:justify-start gap-4">
               <a href="#" className="bg-slate-800 p-2 rounded-full hover:bg-[#0099cc] transition"><Facebook className="w-5 h-5 text-white" /></a>
               <a href="#" className="bg-slate-800 p-2 rounded-full hover:bg-[#0099cc] transition"><Instagram className="w-5 h-5 text-white" /></a>
             </div>
           </div>
           <div>
-            <h3 className="text-white text-xl font-bold mb-4">تواصل معنا</h3>
+            <h3 className="text-white text-xl font-bold mb-4">{t[lang].contact}</h3>
             <ul className="space-y-3 text-sm">
-              <li className="flex items-center justify-center md:justify-start gap-3"><MapPin className="w-5 h-5 text-[#0099cc]" /><span>السعودية - مكة المكرمة - القنفذة - المخيلف - دوقه - الشارع العام</span></li>
+              <li className="flex items-center justify-center md:justify-start gap-3"><MapPin className="w-5 h-5 text-[#0099cc]" /><span>{t[lang].address}</span></li>
               <li className="flex items-center justify-center md:justify-start gap-3"><Phone className="w-5 h-5 text-[#0099cc]" /><a href="https://wa.me/966535717061" className="hover:text-[#0099cc] transition" dir="ltr">+966 53 571 7061</a></li>
             </ul>
           </div>
+        </div>
+        <div className="max-w-7xl mx-auto px-4 mt-8 pt-8 border-t border-slate-800 text-center text-sm text-slate-500">
+          {t[lang].rights}
         </div>
       </footer>
 
@@ -124,4 +158,4 @@ export default function Home() {
       </a>
     </main>
   );
-}
+     }
