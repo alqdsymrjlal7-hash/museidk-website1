@@ -17,13 +17,12 @@ export default function RequestServicePage() {
   const [success, setSuccess] = useState(false);
 
   useEffect(() => {
-    // جلب بيانات المستخدم
     const getUser = async () => {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) window.location.href = "/login";
+      // إذا لم يكن مسجل، نرجعه لتسجيل الدخول
+      if (!user) window.location.href = "/login?redirect=/request";
       setUser(user);
     };
-    // جلب الخدمات من قاعدة البيانات
     const getServices = async () => {
       const { data } = await supabase.from("services").select("*").eq("is_active", true);
       if (data) setServices(data);
@@ -36,7 +35,6 @@ export default function RequestServicePage() {
     e.preventDefault();
     setLoading(true);
     
-    // إرسال الطلب إلى قاعدة البيانات
     const { error } = await supabase.from("requests").insert([
       {
         client_id: user.id,
@@ -105,7 +103,7 @@ export default function RequestServicePage() {
               <label className="block text-sm font-bold text-slate-700 mb-2">المرفقات (اختياري)</label>
               <div className="border-2 border-dashed border-slate-300 rounded-lg p-6 text-center hover:bg-slate-50 transition cursor-pointer">
                 <Upload className="w-8 h-8 text-slate-400 mx-auto mb-2" />
-                <p className="text-sm text-slate-500">اضغط لرفع الملفات (قريباً)</p>
+                <p className="text-sm text-slate-500">اضغط لرفع الملفات (سيتم تفعيله قريباً)</p>
               </div>
             </div>
 
@@ -117,4 +115,4 @@ export default function RequestServicePage() {
       </div>
     </div>
   );
-    }
+                }
