@@ -112,10 +112,10 @@ export default function AdminPage() {
           <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
             <div className="p-4 border-b border-slate-200 bg-slate-50 font-bold text-slate-800">الطلبات الواردة</div>
             <div className="overflow-x-auto">
-              <table className="w-full text-right min-w-[700px]">
+              <table className="w-full text-right min-w-[800px]">
                 <thead className="text-sm text-slate-500 border-b border-slate-100 bg-white">
                   <tr>
-                    <th className="p-4 font-medium">العميل</th>
+                    <th className="p-4 font-medium">مقدم الطلب</th>
                     <th className="p-4 font-medium">الخدمة</th>
                     <th className="p-4 font-medium">المرفق</th>
                     <th className="p-4 font-medium">الحالة</th>
@@ -124,7 +124,11 @@ export default function AdminPage() {
                 <tbody className="text-sm">
                   {requests.map((req) => (
                     <tr key={req.id} className="border-b border-slate-50 hover:bg-slate-50">
-                      <td className="p-4 font-bold text-slate-800" dir="ltr">{req.profiles?.email}</td>
+                      <td className="p-4">
+                        <div className="font-bold text-slate-800" dir="ltr">{req.profiles?.email}</div>
+                        <div className="text-xs text-slate-500 mt-1">{req.client_name} - {req.client_phone}</div>
+                        {req.client_national_id && <div className="text-xs text-slate-400">هوية: {req.client_national_id}</div>}
+                      </td>
                       <td className="p-4 text-slate-600">{req.services?.title}</td>
                       <td className="p-4">
                         {req.file_url ? (
@@ -151,4 +155,4 @@ export default function AdminPage() {
       </main>
     </div>
   );
-          }
+              }
