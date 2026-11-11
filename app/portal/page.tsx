@@ -1,112 +1,27 @@
 "use client";
-import { useEffect, useState } from "react";
-import { createClient } from "@supabase/supabase-js";
-import { LogOut, FileText, FolderOpen, Bell, Home, Plus, Building2, Users } from "lucide-react";
+import { FileText, FolderOpen, Building2, Bell } from "lucide-react";
 import Link from "next/link";
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
-const supabase = createClient(supabaseUrl, supabaseKey);
-
-export default function PortalPage() {
-  const [user, setUser] = useState<any>(null);
-  const [requests, setRequests] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchData = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return window.location.href = "/login";
-      setUser(user);
-
-      const { data } = await supabase.from("requests").select(`*, services (title, price)`).eq("client_id", user.id).order("created_at", { ascending: false });
-      if (data) setRequests(data);
-      setLoading(false);
-    };
-    fetchData();
-  }, []);
-
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    window.location.href = "/";
-  };
-
-  if (loading) return <div className="min-h-screen flex items-center justify-center">جاري التحميل...</div>;
+export default function PortalHome() {
+  const cards = [
+    { href: "/portal/requests", icon: FileText, title: "طلباتي", desc: "عرض ومتابعة طلباتك الحالية" },
+    { href: "/portal/transactions", icon: FolderOpen, title: "معاملاتي", desc: "سجل المعاملات وتواريخ الانتهاء" },
+    { href: "/portal/institutions", icon: Building2, title: "مؤسساتي", desc: "إدارة المؤسسات والعمال" },
+    { href: "/portal/notifications", icon: Bell, title: "التنبيهات", desc: "رسائل التذكير والتجديد" },
+  ];
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col md:flex-row" dir="rtl">
-      <aside className="hidden md:flex w-64 bg-slate-900 text-slate-300 flex-col">
-        <Link href="/" className="h-20 flex items-center justify-center border-b border-slate-800 hover:bg-slate-800 transition">
-          <img src="/images/logo.png" alt="Logo" className="h-14 w-auto object-contain mix-blend-screen" />
-        </Link>
-        <nav className="flex-1 px-4 py-6 space-y-2 text-sm">
-          <a href="/portal" className="flex items-center gap-3 bg-[#0099cc] text-white px-4 py-3 rounded-lg"><Home className="w-5 h-5"/> ملخص الحساب</a>
-          <a href="/portal/transactions" className="flex items-center gap-3 hover:bg-slate-800 px-4 py-3 rounded-lg transition"><FolderOpen className="w-5 h-5"/> معاملاتي</a>
-          <a href="/portal/institutions" className="flex items-center gap-3 hover:bg-slate-800 px-4 py-3 rounded-lg transition"><Building2 className="w-5 h-5"/> مؤسساتي</a>
-          <a href="/portal/beneficiaries" className="flex items-center gap-3 hover:bg-slate-800 px-4 py-3 rounded-lg transition"><Users className="w-5 h-5"/> المستفيدين</a>
-          <a href="/portal/documents" className="flex items-center gap-3 hover:bg-slate-800 px-4 py-3 rounded-lg transition"><FileText className="w-5 h-5"/> المستندات</a>
-          <a href="/portal/notifications" className="flex items-center gap-3 hover:bg-slate-800 px-4 py-3 rounded-lg transition"><Bell className="w-5 h-5"/> التنبيهات</a>
-        </nav>
-        <div className="p-4 border-t border-slate-800">
-          <button onClick={handleLogout} className="flex items-center gap-3 text-red-400 hover:text-red-300 transition w-full">
-            <LogOut className="w-5 h-5" /> تسجيل الخروج
-          </button>
-        </div>
-      </aside>
-
-      <main className="flex-1 flex flex-col">
-        <header className="h-20 bg-white border-b border-slate-200 flex items-center justify-between px-4 md:px-8">
-          <h2 className="text-lg md:text-xl font-bold text-slate-800">مرحباً، {user?.email?.split('@')[0]}</h2>
-          <Link href="/" className="text-sm text-[#0099cc] hover:underline hidden md:block">العودة للموقع</Link>
-        </header>
-
-        <div className="p-4 md:p-8">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mb-8">
-            <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
-              <p className="text-slate-500 text-sm mb-1">الطلبات الجارية</p>
-              <h3 className="text-3xl font-bold text-[#0099cc]">{requests.filter(r => r.status !== 'مكتمل').length}</h3>
-            </div>
-            <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
-              <p className="text-slate-500 text-sm mb-1">المعاملات المكتملة</p>
-              <h3 className="text-3xl font-bold text-green-500">{requests.filter(r => r.status === 'مكتمل').length}</h3>
-            </div>
-            <Link href="/request" className="bg-[#0099cc] text-white p-6 rounded-xl shadow-lg flex flex-col items-center justify-center hover:bg-[#007799] transition">
-              <Plus className="w-8 h-8 mb-2" />
-              <span className="font-bold text-lg">طلب خدمة جديدة</span>
-            </Link>
-          </div>
-
-          <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-            <div className="p-4 border-b border-slate-200 bg-slate-50 font-bold text-slate-800">أحدث الطلبات</div>
-            <div className="overflow-x-auto">
-              <table className="w-full text-right min-w-[600px]">
-                <thead className="text-sm text-slate-500 border-b border-slate-100">
-                  <tr>
-                    <th className="p-4 font-medium">رقم الطلب</th>
-                    <th className="p-4 font-medium">الخدمة</th>
-                    <th className="p-4 font-medium">التاريخ</th>
-                    <th className="p-4 font-medium">الحالة</th>
-                  </tr>
-                </thead>
-                <tbody className="text-sm">
-                  {requests.length === 0 ? (
-                    <tr><td colSpan={4} className="p-8 text-center text-slate-500">لا توجد طلبات حتى الآن.</td></tr>
-                  ) : (
-                    requests.map((req) => (
-                      <tr key={req.id} className="border-b border-slate-50 hover:bg-slate-50">
-                        <td className="p-4 text-slate-400 text-xs">#{req.id.split('-')[0]}</td>
-                        <td className="p-4 font-bold text-slate-800">{req.services?.title}</td>
-                        <td className="p-4 text-slate-500">{new Date(req.created_at).toLocaleDateString('ar-SA')}</td>
-                        <td className="p-4"><span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-xs font-bold">{req.status}</span></td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-      </main>
+    <div className="max-w-4xl mx-auto">
+      <h1 className="text-3xl font-extrabold mb-8">مرحباً بك في لوحة التحكم</h1>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {cards.map((c, i) => (
+          <Link key={i} href={c.href} className="bg-white p-8 rounded-2xl shadow-sm border hover:shadow-xl hover:-translate-y-1 transition duration-300 flex flex-col items-center text-center group">
+            <div className="bg-blue-50 p-5 rounded-2xl text-[#0099cc] mb-4 group-hover:bg-[#0099cc] group-hover:text-white transition"><c.icon className="w-10 h-10" /></div>
+            <h3 className="text-xl font-bold mb-2">{c.title}</h3>
+            <p className="text-slate-500">{c.desc}</p>
+          </Link>
+        ))}
+      </div>
     </div>
   );
-      }
+}
