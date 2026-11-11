@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { createClient } from "@supabase/supabase-js";
-import { LogOut, LayoutDashboard, Users, Download, Plus, X, FileText, Settings } from "lucide-react";
+import { LogOut, LayoutDashboard, Users, Download, Plus, X, FileText, Settings, Upload } from "lucide-react";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
@@ -15,6 +15,8 @@ export default function AdminPage() {
   
   const [showAddForm, setShowAddForm] = useState(false);
   const [newTx, setNewTx] = useState({ client_id: "", title: "", expiry_date: "" });
+  const [txFile, setTxFile] = useState<File | null>(null);
+  const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
     const fetchAdminData = async () => {
@@ -46,20 +48,45 @@ export default function AdminPage() {
 
   const handleAddTransaction = async (e: React.FormEvent) => {
     e.preventDefault();
+    setUploading(true);
+    
+    let fileUrl = "";
+
+    // رفع المستند النهائي إن وجد
+    if (txFile) {
+      const fileExt = txFile.name.split('.').pop();
+      const fileName = `final-${Math.random()}.${fileExt}`;
+      const filePath = `${newTx.client_id}/${fileName}`; // حفظ الملف في مجلد العميل
+
+      const { error: uploadError } = await supabase.storage.from("attachments").upload(filePath, txFile);
+      if (uploadError) {
+        alert("خطأ في رفع الملف: " + uploadError.message);
+        setUploading(false);
+        return;
+      }
+      const { data: { publicUrl } } = supabase.storage.from("attachments").getPublicUrl(filePath);
+      fileUrl = publicUrl;
+    }
+
+    // إضافة المعاملة لقاعدة البيانات
     const { error } = await supabase.from("transactions").insert([
       {
         client_id: newTx.client_id,
         title: newTx.title,
         expiry_date: newTx.expiry_date,
+        file_url: fileUrl,
         status: "سارية"
       }
     ]);
 
+    setUploading(false);
+
     if (error) alert("خطأ: " + error.message);
     else {
-      alert("تمت إضافة المعاملة بنجاح للعميل!");
+      alert("تمت إضافة المعاملة والمستند بنجاح!");
       setShowAddForm(false);
       setNewTx({ client_id: "", title: "", expiry_date: "" });
+      setTxFile(null);
     }
   };
 
@@ -98,13 +125,23 @@ export default function AdminPage() {
             <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm mb-8">
               <h3 className="font-bold text-lg mb-4">إضافة معاملة لعميل</h3>
               <form onSubmit={handleAddTransaction} className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <select required value={newTx.client_id} onChange={(e) => setNewTx({...newTx, client_id: e.target.value})} className="p-3 border rounded-lg">
+                <select required value={newTx.client_id} onChange={(e) => setNewTx({...newTx, client_id: e.target.value})} className="p-3 border rounded-lg md:col-span-3">
                   <option value="">اختر العميل...</option>
                   {clients.map(c => <option key={c.id} value={c.id}>{c.email}</option>)}
                 </select>
-                <input required type="text" placeholder="اسم المعاملة (مثال: رخصة عمل)" value={newTx.title} onChange={(e) => setNewTx({...newTx, title: e.target.value})} className="p-3 border rounded-lg" />
+                <input required type="text" placeholder="اسم المعاملة (مثال: رخصة عمل)" value={newTx.title} onChange={(e) => setNewTx({...newTx, title: e.target.value})} className="p-3 border rounded-lg md:col-span-2" />
                 <input required type="date" value={newTx.expiry_date} onChange={(e) => setNewTx({...newTx, expiry_date: e.target.value})} className="p-3 border rounded-lg" />
-                <button type="submit" className="bg-slate-900 text-white rounded-lg py-3 font-bold md:col-span-3">حفظ المعاملة</button>
+                
+                {/* رفع المستند النهائي */}
+                <div className="md:col-span-3 border-2 border-dashed border-slate-300 rounded-lg p-4 text-center cursor-pointer relative hover:bg-slate-50 transition">
+                  <input type="file" onChange={(e) => setTxFile(e.target.files ? e.target.files[0] : null)} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
+                  <Upload className="w-6 h-6 text-slate-400 mx-auto mb-1" />
+                  <p className="text-sm text-slate-500">{txFile ? txFile.name : "ارفع المستند النهائي (اختياري)"}</p>
+                </div>
+
+                <button type="submit" disabled={uploading} className="bg-slate-900 text-white rounded-lg py-3 font-bold md:col-span-3 disabled:opacity-50">
+                  {uploading ? "جاري الحفظ..." : "حفظ المعاملة"}
+                </button>
               </form>
             </div>
           )}
@@ -117,7 +154,7 @@ export default function AdminPage() {
                   <tr>
                     <th className="p-4 font-medium">مقدم الطلب</th>
                     <th className="p-4 font-medium">الخدمة</th>
-                    <th className="p-4 font-medium">المرفق</th>
+                    <th className="p-4 font-medium">مرفق العميل</th>
                     <th className="p-4 font-medium">الحالة</th>
                   </tr>
                 </thead>
@@ -127,7 +164,6 @@ export default function AdminPage() {
                       <td className="p-4">
                         <div className="font-bold text-slate-800" dir="ltr">{req.profiles?.email}</div>
                         <div className="text-xs text-slate-500 mt-1">{req.client_name} - {req.client_phone}</div>
-                        {req.client_national_id && <div className="text-xs text-slate-400">هوية: {req.client_national_id}</div>}
                       </td>
                       <td className="p-4 text-slate-600">{req.services?.title}</td>
                       <td className="p-4">
@@ -155,4 +191,4 @@ export default function AdminPage() {
       </main>
     </div>
   );
-              }
+}
