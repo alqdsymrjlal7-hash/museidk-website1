@@ -13,7 +13,6 @@ export default function Home() {
   const [services, setServices] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // جلب الخدمات من قاعدة البيانات
   useEffect(() => {
     const fetchServices = async () => {
       const { data } = await supabase.from("services").select("*").eq("is_active", true).order("created_at", { ascending: false });
@@ -48,13 +47,14 @@ export default function Home() {
     <main className="min-h-screen flex flex-col bg-slate-50 text-slate-800" dir={lang === "ar" ? "rtl" : "ltr"}>
       <nav className="fixed w-full top-0 z-50 bg-white shadow-sm border-b border-slate-200">
         <div className="max-w-7xl mx-auto px-4 h-20 flex justify-between items-center">
-          <div className="flex items-center gap-2 cursor-pointer">
+          <Link href="/" className="flex items-center gap-2 cursor-pointer">
+            {/* الشعار هنا - تمت إزالة أي خلفيات */}
             <img src="/images/logo.png" alt="Logo" className="h-14 md:h-16 w-auto object-contain mix-blend-multiply" />
             <div className="hidden sm:flex flex-col">
               <h1 className="font-bold text-lg text-[#0099cc] leading-tight">{lang === "ar" ? "مساعدك" : "Museidk"}</h1>
               <span className="text-xs text-slate-500 font-medium">{lang === "ar" ? "الرقمي" : "Digital"}</span>
             </div>
-          </div>
+          </Link>
           
           <div className="hidden md:flex gap-8 font-medium">
             <a href="#" className="text-[#0099cc] font-bold">{t[lang].home}</a>
@@ -106,13 +106,12 @@ export default function Home() {
                   <h3 className="text-lg font-bold text-slate-900 mb-2">{service.title}</h3>
                   <p className="text-slate-500 text-xs mb-4 flex-grow">{service.description}</p>
                   <div className="flex justify-between items-center mt-auto pt-4 border-t border-slate-100">
-                    {/* عرض السعر فقط إذا وجد */}
                     {service.price ? (
                       <span className="text-[#0099cc] font-extrabold text-lg">{service.price}</span>
                     ) : (
                       <span className="text-slate-400 text-sm">حسب الطلب</span>
                     )}
-                    <Link href="/login?redirect=/request" className="bg-white text-[#0099cc] border border-[#0099cc] px-3 py-1.5 rounded-lg text-sm font-bold hover:bg-[#0099cc] hover:text-white transition">
+                    <Link href={`/login?redirect=/request%3Fservice%3D${service.id}`} className="bg-white text-[#0099cc] border border-[#0099cc] px-3 py-1.5 rounded-lg text-sm font-bold hover:bg-[#0099cc] hover:text-white transition">
                       {t[lang].reqBtn}
                     </Link>
                   </div>
@@ -150,4 +149,4 @@ export default function Home() {
       </a>
     </main>
   );
-          }
+      }
