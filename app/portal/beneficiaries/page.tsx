@@ -23,11 +23,9 @@ export default function BeneficiariesPage() {
       if (!user) return window.location.href = "/login";
       setUser(user);
 
-      // جلب المؤسسات
       const { data: instData } = await supabase.from("institutions").select("id, name").eq("owner_id", user.id);
       if (instData) setInstitutions(instData);
 
-      // جلب المستفيدين
       const { data: benData } = await supabase
         .from("beneficiaries")
         .select(`*, institutions (name)`)
@@ -151,4 +149,4 @@ export default function BeneficiariesPage() {
       </main>
     </div>
   );
-        }
+}
