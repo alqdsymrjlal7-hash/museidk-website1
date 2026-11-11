@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { createClient } from "@supabase/supabase-js";
-import { ArrowRight, Upload, Building2, User } from "lucide-react";
+import { ArrowRight, Upload, Building2, User, Phone, CreditCard } from "lucide-react";
 import Link from "next/link";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
@@ -19,6 +19,11 @@ export default function RequestServicePage() {
   const [notes, setNotes] = useState("");
   const [file, setFile] = useState<File | null>(null);
   
+  // بيانات مقدم الطلب
+  const [clientName, setClientName] = useState("");
+  const [clientPhone, setClientPhone] = useState("");
+  const [clientId, setClientId] = useState("");
+  
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -28,6 +33,13 @@ export default function RequestServicePage() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) window.location.href = "/login?redirect=/request";
       setUser(user);
+
+      // جلب بيانات الملف الشخصي لتعبئتها مسبقاً
+      const { data: profile } = await supabase.from("profiles").select("full_name, phone").eq("id", user.id).single();
+      if (profile) {
+        if (profile.full_name) setClientName(profile.full_name);
+        if (profile.phone) setClientPhone(profile.phone);
+      }
     };
     const getServices = async () => {
       const { data } = await supabase.from("services").select("*").eq("is_active", true);
@@ -76,7 +88,10 @@ export default function RequestServicePage() {
         client_id: user.id,
         service_id: selectedService,
         institution_id: selectedInstitution || null,
-        beneficiary_id: selectedBeneficiary || null, // ربط العامل
+        beneficiary_id: selectedBeneficiary || null,
+        client_name: clientName,
+        client_phone: clientPhone,
+        client_national_id: clientId || null, // اختياري
         notes: notes,
         file_url: fileUrl,
         status: "جديد"
@@ -105,6 +120,34 @@ export default function RequestServicePage() {
         ) : (
           <form onSubmit={handleSubmit} className="bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-slate-100 space-y-6">
             
+            {/* بيانات مقدم الطلب */}
+            <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-4 mb-6">
+              <h3 className="font-bold text-slate-800 border-b border-slate-200 pb-2">بيانات مقدم الطلب</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-bold text-slate-700 mb-1">الاسم</label>
+                  <div className="relative">
+                    <User className="w-4 h-4 text-slate-400 absolute right-3 top-3.5" />
+                    <input required type="text" value={clientName} onChange={(e) => setClientName(e.target.value)} className="w-full pr-10 pl-4 py-3 rounded-lg border border-slate-200 focus:outline-none focus:border-[#0099cc]" placeholder="الاسم الكامل" />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-slate-700 mb-1">رقم الجوال</label>
+                  <div className="relative">
+                    <Phone className="w-4 h-4 text-slate-400 absolute right-3 top-3.5" />
+                    <input required type="text" value={clientPhone} onChange={(e) => setClientPhone(e.target.value)} className="w-full pr-10 pl-4 py-3 rounded-lg border border-slate-200 focus:outline-none focus:border-[#0099cc]" dir="ltr" placeholder="05XXXXXXXX" />
+                  </div>
+                </div>
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-bold text-slate-700 mb-1">رقم الهوية (اختياري)</label>
+                  <div className="relative">
+                    <CreditCard className="w-4 h-4 text-slate-400 absolute right-3 top-3.5" />
+                    <input type="text" value={clientId} onChange={(e) => setClientId(e.target.value)} className="w-full pr-10 pl-4 py-3 rounded-lg border border-slate-200 focus:outline-none focus:border-[#0099cc]" dir="ltr" placeholder="أدخل رقم الهوية إن وجد" />
+                  </div>
+                </div>
+              </div>
+            </div>
+
             <div>
               <label className="block text-sm font-bold text-slate-700 mb-2">اختر الخدمة المطلوبة</label>
               <select required value={selectedService} onChange={(e) => setSelectedService(e.target.value)} className="w-full px-4 py-3 rounded-lg border border-slate-200 focus:outline-none focus:border-[#0099cc] bg-white">
@@ -113,7 +156,6 @@ export default function RequestServicePage() {
               </select>
             </div>
 
-            {/* اختيار المؤسسة */}
             {institutions.length > 0 && (
               <div>
                 <label className="flex items-center gap-2 text-sm font-bold text-slate-700 mb-2"><Building2 className="w-4 h-4"/> اختر المؤسسة (اختياري)</label>
@@ -124,7 +166,6 @@ export default function RequestServicePage() {
               </div>
             )}
 
-            {/* اختيار العامل */}
             {beneficiaries.length > 0 && (
               <div>
                 <label className="flex items-center gap-2 text-sm font-bold text-slate-700 mb-2"><User className="w-4 h-4"/> المستفيد من الخدمة (اختياري)</label>
@@ -157,4 +198,4 @@ export default function RequestServicePage() {
       </div>
     </div>
   );
-         }
+    }
