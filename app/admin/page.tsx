@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { createClient } from "@supabase/supabase-js";
 import { LogOut, LayoutDashboard, Users, Download, Plus, X, FileText, Settings, Upload } from "lucide-react";
+import Link from "next/link";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
@@ -24,16 +25,10 @@ export default function AdminPage() {
       if (!user) return window.location.href = "/login";
       setUser(user);
 
-      const { data: reqData } = await supabase
-        .from("requests")
-        .select(`*, profiles (email), services (title, price)`)
-        .order("created_at", { ascending: false });
+      const { data: reqData } = await supabase.from("requests").select(`*, profiles (email), services (title, price)`).order("created_at", { ascending: false });
       if (reqData) setRequests(reqData);
 
-      const { data: clientsData } = await supabase
-        .from("profiles")
-        .select("id, email")
-        .eq("role", "client");
+      const { data: clientsData } = await supabase.from("profiles").select("id, email").eq("role", "client");
       if (clientsData) setClients(clientsData);
 
       setLoading(false);
@@ -49,14 +44,12 @@ export default function AdminPage() {
   const handleAddTransaction = async (e: React.FormEvent) => {
     e.preventDefault();
     setUploading(true);
-    
     let fileUrl = "";
 
-    // رفع المستند النهائي إن وجد
     if (txFile) {
       const fileExt = txFile.name.split('.').pop();
       const fileName = `final-${Math.random()}.${fileExt}`;
-      const filePath = `${newTx.client_id}/${fileName}`; // حفظ الملف في مجلد العميل
+      const filePath = `${newTx.client_id}/${fileName}`;
 
       const { error: uploadError } = await supabase.storage.from("attachments").upload(filePath, txFile);
       if (uploadError) {
@@ -68,17 +61,7 @@ export default function AdminPage() {
       fileUrl = publicUrl;
     }
 
-    // إضافة المعاملة لقاعدة البيانات
-    const { error } = await supabase.from("transactions").insert([
-      {
-        client_id: newTx.client_id,
-        title: newTx.title,
-        expiry_date: newTx.expiry_date,
-        file_url: fileUrl,
-        status: "سارية"
-      }
-    ]);
-
+    const { error } = await supabase.from("transactions").insert([{ client_id: newTx.client_id, title: newTx.title, expiry_date: newTx.expiry_date, file_url: fileUrl, status: "سارية" }]);
     setUploading(false);
 
     if (error) alert("خطأ: " + error.message);
@@ -100,7 +83,9 @@ export default function AdminPage() {
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col md:flex-row" dir="rtl">
       <aside className="hidden md:flex w-64 bg-slate-900 text-slate-300 flex-col">
-        <div className="h-20 flex items-center justify-center border-b border-slate-800"><h1 className="text-white font-bold text-xl">لوحة الإدارة</h1></div>
+        <Link href="/" className="h-20 flex items-center justify-center border-b border-slate-800 hover:bg-slate-800 transition">
+          <img src="/images/logo.png" alt="Logo" className="h-14 w-auto object-contain mix-blend-screen" />
+        </Link>
         <nav className="flex-1 px-4 py-6 space-y-2 text-sm">
           <a href="/admin" className="flex items-center gap-3 bg-[#0099cc] text-white px-4 py-3 rounded-lg"><LayoutDashboard className="w-5 h-5"/> نظرة عامة</a>
           <a href="/admin/transactions" className="flex items-center gap-3 hover:bg-slate-800 px-4 py-3 rounded-lg transition"><FileText className="w-5 h-5"/> إدارة المعاملات</a>
@@ -132,7 +117,6 @@ export default function AdminPage() {
                 <input required type="text" placeholder="اسم المعاملة (مثال: رخصة عمل)" value={newTx.title} onChange={(e) => setNewTx({...newTx, title: e.target.value})} className="p-3 border rounded-lg md:col-span-2" />
                 <input required type="date" value={newTx.expiry_date} onChange={(e) => setNewTx({...newTx, expiry_date: e.target.value})} className="p-3 border rounded-lg" />
                 
-                {/* رفع المستند النهائي */}
                 <div className="md:col-span-3 border-2 border-dashed border-slate-300 rounded-lg p-4 text-center cursor-pointer relative hover:bg-slate-50 transition">
                   <input type="file" onChange={(e) => setTxFile(e.target.files ? e.target.files[0] : null)} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
                   <Upload className="w-6 h-6 text-slate-400 mx-auto mb-1" />
