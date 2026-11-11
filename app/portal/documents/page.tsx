@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { createClient } from "@supabase/supabase-js";
-import { ArrowRight, FileText, Download, Home, FolderOpen, Bell, Building2 } from "lucide-react";
+import { ArrowRight, FileText, Download, Home, FolderOpen, Bell, Building2, LogOut, Users } from "lucide-react";
 import Link from "next/link";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
@@ -19,7 +19,6 @@ export default function ClientDocumentsPage() {
       if (!user) return window.location.href = "/login";
       setUser(user);
 
-      // جلب الملفات المرفقة في الطلبات
       const { data: reqData } = await supabase
         .from("requests")
         .select(`id, created_at, file_url, services (title)`)
@@ -33,12 +32,15 @@ export default function ClientDocumentsPage() {
     fetchData();
   }, []);
 
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    window.location.href = "/";
+  };
+
   if (loading) return <div className="min-h-screen flex items-center justify-center">جاري التحميل...</div>;
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col md:flex-row" dir="rtl">
-      
-      {/* القائمة الجانبية */}
       <aside className="hidden md:flex w-64 bg-slate-900 text-slate-300 flex-col">
         <div className="h-20 flex items-center justify-center border-b border-slate-800">
           <h1 className="text-white font-bold text-xl">بوابة العميل</h1>
@@ -47,13 +49,19 @@ export default function ClientDocumentsPage() {
           <a href="/portal" className="flex items-center gap-3 hover:bg-slate-800 px-4 py-3 rounded-lg transition"><Home className="w-5 h-5"/> ملخص الحساب</a>
           <a href="/portal/transactions" className="flex items-center gap-3 hover:bg-slate-800 px-4 py-3 rounded-lg transition"><FolderOpen className="w-5 h-5"/> معاملاتي</a>
           <a href="/portal/institutions" className="flex items-center gap-3 hover:bg-slate-800 px-4 py-3 rounded-lg transition"><Building2 className="w-5 h-5"/> مؤسساتي</a>
+          <a href="/portal/beneficiaries" className="flex items-center gap-3 hover:bg-slate-800 px-4 py-3 rounded-lg transition"><Users className="w-5 h-5"/> المستفيدين</a>
           <a href="/portal/documents" className="flex items-center gap-3 bg-[#0099cc] text-white px-4 py-3 rounded-lg"><FileText className="w-5 h-5"/> المستندات</a>
           <a href="/portal/notifications" className="flex items-center gap-3 hover:bg-slate-800 px-4 py-3 rounded-lg transition"><Bell className="w-5 h-5"/> التنبيهات</a>
         </nav>
+        <div className="p-4 border-t border-slate-800">
+          <button onClick={handleLogout} className="flex items-center gap-3 text-red-400 hover:text-red-300 transition w-full">
+            <LogOut className="w-5 h-5" /> تسجيل الخروج
+          </button>
+        </div>
       </aside>
 
       <main className="flex-1 p-4 md:p-8">
-        <div className="max-w-5xl mx-auto">
+        <div className="max-w-4xl mx-auto">
           <div className="mb-6 flex items-center gap-4 md:hidden">
             <Link href="/portal" className="p-2 bg-white rounded-full shadow"><ArrowRight className="w-5 h-5 text-slate-600" /></Link>
             <h1 className="text-xl font-bold">المستندات</h1>
@@ -96,4 +104,4 @@ export default function ClientDocumentsPage() {
       </main>
     </div>
   );
-        }
+                  }
