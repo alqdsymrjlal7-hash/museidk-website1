@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { createClient } from "@supabase/supabase-js";
-import { LogOut, FileText, FolderOpen, Bell, RefreshCcw, Home, Plus, Building2 } from "lucide-react";
+import { LogOut, FileText, FolderOpen, Bell, Home, Plus, Building2, Users } from "lucide-react";
 import Link from "next/link";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
@@ -16,10 +16,7 @@ export default function PortalPage() {
   useEffect(() => {
     const fetchData = async () => {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        window.location.href = "/login";
-        return;
-      }
+      if (!user) return window.location.href = "/login";
       setUser(user);
 
       const { data } = await supabase
@@ -51,6 +48,7 @@ export default function PortalPage() {
           <a href="/portal" className="flex items-center gap-3 bg-[#0099cc] text-white px-4 py-3 rounded-lg"><Home className="w-5 h-5"/> ملخص الحساب</a>
           <a href="/portal/transactions" className="flex items-center gap-3 hover:bg-slate-800 px-4 py-3 rounded-lg transition"><FolderOpen className="w-5 h-5"/> معاملاتي</a>
           <a href="/portal/institutions" className="flex items-center gap-3 hover:bg-slate-800 px-4 py-3 rounded-lg transition"><Building2 className="w-5 h-5"/> مؤسساتي</a>
+          <a href="/portal/beneficiaries" className="flex items-center gap-3 hover:bg-slate-800 px-4 py-3 rounded-lg transition"><Users className="w-5 h-5"/> المستفيدين</a>
           <a href="/portal/documents" className="flex items-center gap-3 hover:bg-slate-800 px-4 py-3 rounded-lg transition"><FileText className="w-5 h-5"/> المستندات</a>
           <a href="/portal/notifications" className="flex items-center gap-3 hover:bg-slate-800 px-4 py-3 rounded-lg transition"><Bell className="w-5 h-5"/> التنبيهات</a>
         </nav>
@@ -116,4 +114,4 @@ export default function PortalPage() {
       </main>
     </div>
   );
-                  }
+        }
