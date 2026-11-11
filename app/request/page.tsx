@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { createClient } from "@supabase/supabase-js";
 import { ArrowRight, Upload, Building2, User, Phone, CreditCard } from "lucide-react";
 import Link from "next/link";
@@ -8,7 +8,7 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-export default function RequestServicePage() {
+function RequestForm() {
   const [services, setServices] = useState<any[]>([]);
   const [institutions, setInstitutions] = useState<any[]>([]);
   const [beneficiaries, setBeneficiaries] = useState<any[]>([]);
@@ -19,7 +19,6 @@ export default function RequestServicePage() {
   const [notes, setNotes] = useState("");
   const [file, setFile] = useState<File | null>(null);
   
-  // بيانات مقدم الطلب
   const [clientName, setClientName] = useState("");
   const [clientPhone, setClientPhone] = useState("");
   const [clientId, setClientId] = useState("");
@@ -29,12 +28,15 @@ export default function RequestServicePage() {
   const [success, setSuccess] = useState(false);
 
   useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const serviceId = params.get("service");
+    if (serviceId) setSelectedService(serviceId);
+
     const getUser = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) window.location.href = "/login?redirect=/request";
       setUser(user);
 
-      // جلب بيانات الملف الشخصي لتعبئتها مسبقاً
       const { data: profile } = await supabase.from("profiles").select("full_name, phone").eq("id", user.id).single();
       if (profile) {
         if (profile.full_name) setClientName(profile.full_name);
@@ -42,7 +44,7 @@ export default function RequestServicePage() {
       }
     };
     const getServices = async () => {
-      const { data } = await supabase.from("services").select("*").eq("is_active", true);
+      const { data } = await supabase.from("services").select("*").eq("is_active", true).order("created_at", { ascending: false });
       if (data) setServices(data);
     };
     const getInstitutions = async () => {
@@ -65,7 +67,6 @@ export default function RequestServicePage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    
     let fileUrl = "";
 
     if (file) {
@@ -85,16 +86,9 @@ export default function RequestServicePage() {
 
     const { error } = await supabase.from("requests").insert([
       {
-        client_id: user.id,
-        service_id: selectedService,
-        institution_id: selectedInstitution || null,
-        beneficiary_id: selectedBeneficiary || null,
-        client_name: clientName,
-        client_phone: clientPhone,
-        client_national_id: clientId || null, // اختياري
-        notes: notes,
-        file_url: fileUrl,
-        status: "جديد"
+        client_id: user.id, service_id: selectedService, institution_id: selectedInstitution || null,
+        beneficiary_id: selectedBeneficiary || null, client_name: clientName, client_phone: clientPhone,
+        client_national_id: clientId || null, notes: notes, file_url: fileUrl, status: "جديد"
       }
     ]);
     
@@ -106,9 +100,12 @@ export default function RequestServicePage() {
   return (
     <div className="min-h-screen bg-slate-50 p-4 md:p-8" dir="rtl">
       <div className="max-w-3xl mx-auto">
-        <div className="mb-6 flex items-center gap-4">
-          <Link href="/portal" className="p-2 bg-white rounded-full shadow hover:bg-slate-100"><ArrowRight className="w-5 h-5 text-slate-600" /></Link>
-          <h1 className="text-2xl font-bold text-slate-800">طلب خدمة جديدة</h1>
+        <div className="mb-6 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <Link href="/portal" className="p-2 bg-white rounded-full shadow hover:bg-slate-100"><ArrowRight className="w-5 h-5 text-slate-600" /></Link>
+            <h1 className="text-xl md:text-2xl font-bold text-slate-800">طلب خدمة جديدة</h1>
+          </div>
+          <Link href="/"><img src="/images/logo.png" alt="Logo" className="h-12 md:h-14 w-auto mix-blend-multiply" /></Link>
         </div>
 
         {success ? (
@@ -119,8 +116,6 @@ export default function RequestServicePage() {
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-slate-100 space-y-6">
-            
-            {/* بيانات مقدم الطلب */}
             <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-4 mb-6">
               <h3 className="font-bold text-slate-800 border-b border-slate-200 pb-2">بيانات مقدم الطلب</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -197,5 +192,13 @@ export default function RequestServicePage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function RequestServicePage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center">جاري التحميل...</div>}>
+      <RequestForm />
+    </Suspense>
   );
     }
