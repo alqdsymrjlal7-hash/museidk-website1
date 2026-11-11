@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { createClient } from "@supabase/supabase-js";
 import { LogOut, LayoutDashboard, Users, FileText, Settings, Plus, Trash2, Upload } from "lucide-react";
+import Link from "next/link";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
@@ -12,7 +13,6 @@ export default function AdminServicesPage() {
   const [services, setServices] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   
-  // نموذج إضافة خدمة جديدة
   const [showAddForm, setShowAddForm] = useState(false);
   const [newService, setNewService] = useState({ title: "", description: "", price: "", requires_renewal: false });
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -36,7 +36,6 @@ export default function AdminServicesPage() {
     setUploading(true);
     let imageUrl = "";
 
-    // رفع الصورة إن وجدت
     if (imageFile) {
       const fileExt = imageFile.name.split('.').pop();
       const fileName = `service-${Math.random()}.${fileExt}`;
@@ -51,17 +50,7 @@ export default function AdminServicesPage() {
       imageUrl = publicUrl;
     }
 
-    // إضافة الخدمة لقاعدة البيانات
-    const { data, error } = await supabase.from("services").insert([
-      {
-        title: newService.title,
-        description: newService.description,
-        price: newService.price,
-        requires_renewal: newService.requires_renewal,
-        image_url: imageUrl
-      }
-    ]).select();
-
+    const { data, error } = await supabase.from("services").insert([{ title: newService.title, description: newService.description, price: newService.price, requires_renewal: newService.requires_renewal, image_url: imageUrl }]).select();
     setUploading(false);
 
     if (error) alert("خطأ: " + error.message);
@@ -91,7 +80,9 @@ export default function AdminServicesPage() {
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col md:flex-row" dir="rtl">
       <aside className="hidden md:flex w-64 bg-slate-900 text-slate-300 flex-col">
-        <div className="h-20 flex items-center justify-center border-b border-slate-800"><h1 className="text-white font-bold text-xl">لوحة الإدارة</h1></div>
+        <Link href="/" className="h-20 flex items-center justify-center border-b border-slate-800 hover:bg-slate-800 transition">
+          <img src="/images/logo.png" alt="Logo" className="h-14 w-auto object-contain mix-blend-screen" />
+        </Link>
         <nav className="flex-1 px-4 py-6 space-y-2 text-sm">
           <a href="/admin" className="flex items-center gap-3 hover:bg-slate-800 px-4 py-3 rounded-lg transition"><LayoutDashboard className="w-5 h-5"/> نظرة عامة</a>
           <a href="/admin/transactions" className="flex items-center gap-3 hover:bg-slate-800 px-4 py-3 rounded-lg transition"><FileText className="w-5 h-5"/> إدارة المعاملات</a>
@@ -120,7 +111,6 @@ export default function AdminServicesPage() {
                 <input type="text" placeholder="السعر (اختياري، مثال: 50 ر.س)" value={newService.price} onChange={(e) => setNewService({...newService, price: e.target.value})} className="p-3 border rounded-lg" />
                 <textarea placeholder="وصف الخدمة (اختياري)" value={newService.description} onChange={(e) => setNewService({...newService, description: e.target.value})} className="p-3 border rounded-lg md:col-span-2"></textarea>
                 
-                {/* رفع الصورة */}
                 <div className="md:col-span-2 border-2 border-dashed border-slate-300 rounded-lg p-4 text-center cursor-pointer relative">
                   <input type="file" accept="image/*" onChange={(e) => setImageFile(e.target.files ? e.target.files[0] : null)} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
                   <Upload className="w-6 h-6 text-slate-400 mx-auto mb-1" />
