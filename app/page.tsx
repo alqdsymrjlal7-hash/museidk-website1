@@ -48,7 +48,6 @@ export default function Home() {
       <nav className="fixed w-full top-0 z-50 bg-white shadow-sm border-b border-slate-200">
         <div className="max-w-7xl mx-auto px-4 h-20 flex justify-between items-center">
           <Link href="/" className="flex items-center gap-2 cursor-pointer">
-            {/* الشعار هنا - تمت إزالة أي خلفيات */}
             <img src="/images/logo.png" alt="Logo" className="h-14 md:h-16 w-auto object-contain mix-blend-multiply" />
             <div className="hidden sm:flex flex-col">
               <h1 className="font-bold text-lg text-[#0099cc] leading-tight">{lang === "ar" ? "مساعدك" : "Museidk"}</h1>
@@ -149,4 +148,4 @@ export default function Home() {
       </a>
     </main>
   );
-                                   }
+}
