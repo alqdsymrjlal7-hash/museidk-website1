@@ -1,12 +1,13 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { createClient } from "@supabase/supabase-js";
+import Link from "next/link";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-export default function LoginPage() {
+function LoginForm() {
   const [email, setEmail] = useState("");
   const [otp, setOtp] = useState("");
   const [step, setStep] = useState(1);
@@ -14,12 +15,9 @@ export default function LoginPage() {
   const [redirectUrl, setRedirectUrl] = useState("/portal");
 
   useEffect(() => {
-    // قراءة الرابط المطلوب من شريط العنوان
     const params = new URLSearchParams(window.location.search);
     const redirect = params.get("redirect");
-    if (redirect) {
-      setRedirectUrl(redirect);
-    }
+    if (redirect) setRedirectUrl(redirect);
   }, []);
 
   const handleSendOtp = async (e: React.FormEvent) => {
@@ -49,7 +47,10 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-slate-50 p-4" dir="rtl">
       <div className="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md border border-slate-100">
-        <div className="text-center mb-8">
+        <div className="text-center mb-8 flex flex-col items-center">
+          <Link href="/" className="hover:opacity-80 transition">
+            <img src="/images/logo.png" alt="Logo" className="h-20 w-auto object-contain mix-blend-multiply mb-4" />
+          </Link>
           <h1 className="text-2xl font-bold text-[#0099cc]">مساعدك الرقمي</h1>
           <p className="text-slate-500 text-sm mt-2">
             {step === 1 ? "أدخل بريدك الإلكتروني لاستلام رمز التحقق" : "أدخل رمز التحقق المرسل إلى بريدك"}
@@ -80,4 +81,12 @@ export default function LoginPage() {
       </div>
     </div>
   );
-                }
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center">جاري التحميل...</div>}>
+      <LoginForm />
+    </Suspense>
+  );
+}
