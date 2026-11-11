@@ -9,7 +9,6 @@ const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL || "", proces
 export default function Home() {
   const [services, setServices] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-
   useEffect(() => {
     supabase.from("services").select("*").eq("is_active", true).then(({ data }) => { setServices(data || []); setLoading(false); });
   }, []);
