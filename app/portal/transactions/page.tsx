@@ -19,12 +19,7 @@ export default function TransactionsPage() {
       if (!user) return window.location.href = "/login";
       setUser(user);
 
-      const { data } = await supabase
-        .from("transactions")
-        .select("*")
-        .eq("client_id", user.id)
-        .order("created_at", { ascending: false });
-        
+      const { data } = await supabase.from("transactions").select("*").eq("client_id", user.id).order("created_at", { ascending: false });
       if (data) setTransactions(data);
       setLoading(false);
     };
@@ -47,9 +42,9 @@ export default function TransactionsPage() {
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col md:flex-row" dir="rtl">
       <aside className="hidden md:flex w-64 bg-slate-900 text-slate-300 flex-col">
-        <div className="h-20 flex items-center justify-center border-b border-slate-800">
-          <h1 className="text-white font-bold text-xl">بوابة العميل</h1>
-        </div>
+        <Link href="/" className="h-20 flex items-center justify-center border-b border-slate-800 hover:bg-slate-800 transition">
+          <img src="/images/logo.png" alt="Logo" className="h-14 w-auto object-contain mix-blend-screen" />
+        </Link>
         <nav className="flex-1 px-4 py-6 space-y-2 text-sm">
           <a href="/portal" className="flex items-center gap-3 hover:bg-slate-800 px-4 py-3 rounded-lg transition"><Home className="w-5 h-5"/> ملخص الحساب</a>
           <a href="/portal/transactions" className="flex items-center gap-3 bg-[#0099cc] text-white px-4 py-3 rounded-lg"><FolderOpen className="w-5 h-5"/> معاملاتي</a>
@@ -113,4 +108,4 @@ export default function TransactionsPage() {
       </main>
     </div>
   );
-        }
+    }
