@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { createClient } from "@supabase/supabase-js";
-import { ArrowRight, Upload, Building2 } from "lucide-react";
+import { ArrowRight, Upload, Building2, User } from "lucide-react";
 import Link from "next/link";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
@@ -11,10 +11,14 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 export default function RequestServicePage() {
   const [services, setServices] = useState<any[]>([]);
   const [institutions, setInstitutions] = useState<any[]>([]);
+  const [beneficiaries, setBeneficiaries] = useState<any[]>([]);
+  
   const [selectedService, setSelectedService] = useState("");
   const [selectedInstitution, setSelectedInstitution] = useState("");
+  const [selectedBeneficiary, setSelectedBeneficiary] = useState("");
   const [notes, setNotes] = useState("");
   const [file, setFile] = useState<File | null>(null);
+  
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -33,10 +37,17 @@ export default function RequestServicePage() {
       const { data } = await supabase.from("institutions").select("*").eq("owner_id", user?.id);
       if (data) setInstitutions(data);
     };
+    const getBeneficiaries = async () => {
+      const { data } = await supabase.from("beneficiaries").select("*");
+      if (data) setBeneficiaries(data);
+    };
     
     getUser();
     getServices();
-    if (user) getInstitutions();
+    if (user) {
+      getInstitutions();
+      getBeneficiaries();
+    }
   }, [user]);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -60,12 +71,12 @@ export default function RequestServicePage() {
       fileUrl = publicUrl;
     }
 
-    // إرسال الطلب مع ربط المؤسسة
     const { error } = await supabase.from("requests").insert([
       {
         client_id: user.id,
         service_id: selectedService,
-        institution_id: selectedInstitution || null, // ربط المؤسسة إن وجدت
+        institution_id: selectedInstitution || null,
+        beneficiary_id: selectedBeneficiary || null, // ربط العامل
         notes: notes,
         file_url: fileUrl,
         status: "جديد"
@@ -94,21 +105,6 @@ export default function RequestServicePage() {
         ) : (
           <form onSubmit={handleSubmit} className="bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-slate-100 space-y-6">
             
-            {/* اختيار المؤسسة */}
-            {institutions.length > 0 && (
-              <div>
-                <label className="flex items-center gap-2 text-sm font-bold text-slate-700 mb-2"><Building2 className="w-4 h-4"/> اختر المؤسسة (اختياري)</label>
-                <select 
-                  value={selectedInstitution} 
-                  onChange={(e) => setSelectedInstitution(e.target.value)} 
-                  className="w-full px-4 py-3 rounded-lg border border-slate-200 focus:outline-none focus:border-[#0099cc] bg-white"
-                >
-                  <option value="">طلب شخصي (بدون مؤسسة)</option>
-                  {institutions.map(inst => <option key={inst.id} value={inst.id}>{inst.name}</option>)}
-                </select>
-              </div>
-            )}
-
             <div>
               <label className="block text-sm font-bold text-slate-700 mb-2">اختر الخدمة المطلوبة</label>
               <select required value={selectedService} onChange={(e) => setSelectedService(e.target.value)} className="w-full px-4 py-3 rounded-lg border border-slate-200 focus:outline-none focus:border-[#0099cc] bg-white">
@@ -116,6 +112,28 @@ export default function RequestServicePage() {
                 {services.map(s => <option key={s.id} value={s.id}>{s.title} {s.price ? `- ${s.price}` : ''}</option>)}
               </select>
             </div>
+
+            {/* اختيار المؤسسة */}
+            {institutions.length > 0 && (
+              <div>
+                <label className="flex items-center gap-2 text-sm font-bold text-slate-700 mb-2"><Building2 className="w-4 h-4"/> اختر المؤسسة (اختياري)</label>
+                <select value={selectedInstitution} onChange={(e) => setSelectedInstitution(e.target.value)} className="w-full px-4 py-3 rounded-lg border border-slate-200 focus:outline-none focus:border-[#0099cc] bg-white">
+                  <option value="">طلب شخصي (بدون مؤسسة)</option>
+                  {institutions.map(inst => <option key={inst.id} value={inst.id}>{inst.name}</option>)}
+                </select>
+              </div>
+            )}
+
+            {/* اختيار العامل */}
+            {beneficiaries.length > 0 && (
+              <div>
+                <label className="flex items-center gap-2 text-sm font-bold text-slate-700 mb-2"><User className="w-4 h-4"/> المستفيد من الخدمة (اختياري)</label>
+                <select value={selectedBeneficiary} onChange={(e) => setSelectedBeneficiary(e.target.value)} className="w-full px-4 py-3 rounded-lg border border-slate-200 focus:outline-none focus:border-[#0099cc] bg-white">
+                  <option value="">لنفسي / للمؤسسة</option>
+                  {beneficiaries.map(ben => <option key={ben.id} value={ben.id}>{ben.name} - {ben.national_id}</option>)}
+                </select>
+              </div>
+            )}
             
             <div>
               <label className="block text-sm font-bold text-slate-700 mb-2">ملاحظات إضافية</label>
@@ -139,4 +157,4 @@ export default function RequestServicePage() {
       </div>
     </div>
   );
-      }
+         }
