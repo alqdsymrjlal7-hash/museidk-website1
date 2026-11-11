@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { createClient } from "@supabase/supabase-js";
-import { ArrowRight, AlertCircle, RefreshCcw, Home, FileText, FolderOpen, Bell, Building2, LogOut } from "lucide-react";
+import { ArrowRight, RefreshCcw, Home, FileText, FolderOpen, Bell, Building2, LogOut, Users } from "lucide-react";
 import Link from "next/link";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
@@ -54,6 +54,7 @@ export default function TransactionsPage() {
           <a href="/portal" className="flex items-center gap-3 hover:bg-slate-800 px-4 py-3 rounded-lg transition"><Home className="w-5 h-5"/> ملخص الحساب</a>
           <a href="/portal/transactions" className="flex items-center gap-3 bg-[#0099cc] text-white px-4 py-3 rounded-lg"><FolderOpen className="w-5 h-5"/> معاملاتي</a>
           <a href="/portal/institutions" className="flex items-center gap-3 hover:bg-slate-800 px-4 py-3 rounded-lg transition"><Building2 className="w-5 h-5"/> مؤسساتي</a>
+          <a href="/portal/beneficiaries" className="flex items-center gap-3 hover:bg-slate-800 px-4 py-3 rounded-lg transition"><Users className="w-5 h-5"/> المستفيدين</a>
           <a href="/portal/documents" className="flex items-center gap-3 hover:bg-slate-800 px-4 py-3 rounded-lg transition"><FileText className="w-5 h-5"/> المستندات</a>
           <a href="/portal/notifications" className="flex items-center gap-3 hover:bg-slate-800 px-4 py-3 rounded-lg transition"><Bell className="w-5 h-5"/> التنبيهات</a>
         </nav>
@@ -112,4 +113,4 @@ export default function TransactionsPage() {
       </main>
     </div>
   );
-    }
+        }
