@@ -26,10 +26,7 @@ export default function BeneficiariesPage() {
       const { data: instData } = await supabase.from("institutions").select("id, name").eq("owner_id", user.id);
       if (instData) setInstitutions(instData);
 
-      const { data: benData } = await supabase
-        .from("beneficiaries")
-        .select(`*, institutions (name)`)
-        .order("created_at", { ascending: false });
+      const { data: benData } = await supabase.from("beneficiaries").select(`*, institutions (name)`).order("created_at", { ascending: false });
       if (benData) setBeneficiaries(benData);
       
       setLoading(false);
@@ -39,19 +36,9 @@ export default function BeneficiariesPage() {
 
   const handleAddBeneficiary = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.institution_id) {
-      alert("يجب اختيار مؤسسة أولاً.");
-      return;
-    }
+    if (!formData.institution_id) return alert("يجب اختيار مؤسسة أولاً.");
 
-    const { data, error } = await supabase.from("beneficiaries").insert([
-      {
-        name: formData.name,
-        national_id: formData.national_id,
-        phone: formData.phone,
-        institution_id: formData.institution_id
-      }
-    ]).select(`*, institutions (name)`);
+    const { data, error } = await supabase.from("beneficiaries").insert([{ name: formData.name, national_id: formData.national_id, phone: formData.phone, institution_id: formData.institution_id }]).select(`*, institutions (name)`);
 
     if (error) alert("حدث خطأ: " + error.message);
     else {
@@ -72,9 +59,9 @@ export default function BeneficiariesPage() {
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col md:flex-row" dir="rtl">
       <aside className="hidden md:flex w-64 bg-slate-900 text-slate-300 flex-col">
-        <div className="h-20 flex items-center justify-center border-b border-slate-800">
-          <h1 className="text-white font-bold text-xl">بوابة العميل</h1>
-        </div>
+        <Link href="/" className="h-20 flex items-center justify-center border-b border-slate-800 hover:bg-slate-800 transition">
+          <img src="/images/logo.png" alt="Logo" className="h-14 w-auto object-contain mix-blend-screen" />
+        </Link>
         <nav className="flex-1 px-4 py-6 space-y-2 text-sm">
           <a href="/portal" className="flex items-center gap-3 hover:bg-slate-800 px-4 py-3 rounded-lg transition"><Home className="w-5 h-5"/> ملخص الحساب</a>
           <a href="/portal/transactions" className="flex items-center gap-3 hover:bg-slate-800 px-4 py-3 rounded-lg transition"><FolderOpen className="w-5 h-5"/> معاملاتي</a>
@@ -106,9 +93,7 @@ export default function BeneficiariesPage() {
             <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm mb-6">
               <h3 className="font-bold text-lg mb-4">إضافة مستفيد جديد</h3>
               {institutions.length === 0 ? (
-                <div className="bg-orange-50 text-orange-700 p-4 rounded-lg text-sm mb-4">
-                  يجب عليك إضافة مؤسسة واحدة على الأقل من صفحة "مؤسساتي" قبل إضافة عمال.
-                </div>
+                <div className="bg-orange-50 text-orange-700 p-4 rounded-lg text-sm mb-4">يجب عليك إضافة مؤسسة واحدة على الأقل من صفحة "مؤسساتي" قبل إضافة عمال.</div>
               ) : (
                 <form onSubmit={handleAddBeneficiary} className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <select required value={formData.institution_id} onChange={(e) => setFormData({...formData, institution_id: e.target.value})} className="p-3 border rounded-lg md:col-span-2 bg-white">
