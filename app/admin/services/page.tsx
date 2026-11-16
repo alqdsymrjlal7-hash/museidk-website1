@@ -1,155 +1,92 @@
 "use client";
 import { useEffect, useState } from "react";
 import { createClient } from "@supabase/supabase-js";
-import { LogOut, LayoutDashboard, Users, FileText, Settings, Plus, Trash2, Upload } from "lucide-react";
+import { ArrowRight, Plus, Upload, Trash2 } from "lucide-react";
 import Link from "next/link";
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
-const supabase = createClient(supabaseUrl, supabaseKey);
+const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL || "", process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "");
 
-export default function AdminServicesPage() {
-  const [user, setUser] = useState<any>(null);
+export default function AdminServices() {
   const [services, setServices] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  
-  const [showAddForm, setShowAddForm] = useState(false);
-  const [newService, setNewService] = useState({ title: "", description: "", price: "", requires_renewal: false });
-  const [imageFile, setImageFile] = useState<File | null>(null);
-  const [uploading, setUploading] = useState(false);
+  const [showForm, setShowForm] = useState(false);
+  const [form, setForm] = useState({ title: "", description: "", price: "" });
+  const [file, setFile] = useState<File | null>(null);
+  const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    const fetchServices = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return window.location.href = "/login";
-      setUser(user);
+  const fetchServices = () => {
+    supabase.from("services").select("*").order("created_at", { ascending: false }).then(r => setServices(r.data || []));
+  };
 
-      const { data } = await supabase.from("services").select("*").order("created_at", { ascending: false });
-      if (data) setServices(data);
-      setLoading(false);
-    };
-    fetchServices();
-  }, []);
+  useEffect(() => { fetchServices(); }, []);
 
-  const handleAddService = async (e: React.FormEvent) => {
+  const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();
-    setUploading(true);
-    let imageUrl = "";
+    setLoading(true);
+    let imageUrl = null;
 
-    if (imageFile) {
-      const fileExt = imageFile.name.split('.').pop();
-      const fileName = `service-${Math.random()}.${fileExt}`;
-      const { error: uploadError } = await supabase.storage.from("attachments").upload(fileName, imageFile);
-      
-      if (uploadError) {
-        alert("خطأ في رفع الصورة: " + uploadError.message);
-        setUploading(false);
-        return;
-      }
-      const { data: { publicUrl } } = supabase.storage.from("attachments").getPublicUrl(fileName);
-      imageUrl = publicUrl;
+    if (file) {
+      const path = `services/${Math.random()}.${file.name.split('.').pop()}`;
+      const { error: uploadError } = await supabase.storage.from("attachments").upload(path, file);
+      if (!uploadError) imageUrl = supabase.storage.from("attachments").getPublicUrl(path).data.publicUrl;
+      else alert("تم حفظ الخدمة، ولكن فشل رفع الصورة.");
     }
 
-    const { data, error } = await supabase.from("services").insert([{ title: newService.title, description: newService.description, price: newService.price, requires_renewal: newService.requires_renewal, image_url: imageUrl }]).select();
-    setUploading(false);
+    const { error } = await supabase.from("services").insert([{ 
+      title: form.title, description: form.description, price: form.price || "حسب الطلب", image_url: imageUrl, is_active: true
+    }]);
 
-    if (error) alert("خطأ: " + error.message);
+    setLoading(false);
+    if (error) alert("حدث خطأ: " + error.message);
     else {
-      alert("تمت إضافة الخدمة بنجاح!");
-      if (data) setServices([data[0], ...services]);
-      setShowAddForm(false);
-      setNewService({ title: "", description: "", price: "", requires_renewal: false });
-      setImageFile(null);
+      setShowForm(false); setForm({ title: "", description: "", price: "" }); setFile(null); fetchServices();
     }
   };
 
-  const handleDeleteService = async (id: string) => {
+  const handleDelete = async (id: string) => {
     if (!confirm("هل أنت متأكد من حذف هذه الخدمة؟")) return;
-    const { error } = await supabase.from("services").delete().eq("id", id);
-    if (error) alert("خطأ في الحذف: " + error.message);
-    else setServices(services.filter(s => s.id !== id));
+    await supabase.from("services").delete().eq("id", id);
+    fetchServices();
   };
-
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    window.location.href = "/";
-  };
-
-  if (loading) return <div className="min-h-screen flex items-center justify-center">جاري التحميل...</div>;
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col md:flex-row" dir="rtl">
-      <aside className="hidden md:flex w-64 bg-slate-900 text-slate-300 flex-col">
-        <Link href="/" className="h-20 flex items-center justify-center border-b border-slate-800 hover:bg-slate-800 transition">
-          <img src="/images/logo.png" alt="Logo" className="h-14 w-auto object-contain mix-blend-screen" />
-        </Link>
-        <nav className="flex-1 px-4 py-6 space-y-2 text-sm">
-          <a href="/admin" className="flex items-center gap-3 hover:bg-slate-800 px-4 py-3 rounded-lg transition"><LayoutDashboard className="w-5 h-5"/> نظرة عامة</a>
-          <a href="/admin/transactions" className="flex items-center gap-3 hover:bg-slate-800 px-4 py-3 rounded-lg transition"><FileText className="w-5 h-5"/> إدارة المعاملات</a>
-          <a href="/admin/clients" className="flex items-center gap-3 hover:bg-slate-800 px-4 py-3 rounded-lg transition"><Users className="w-5 h-5"/> إدارة العملاء</a>
-          <a href="/admin/services" className="flex items-center gap-3 bg-[#0099cc] text-white px-4 py-3 rounded-lg"><Settings className="w-5 h-5"/> إدارة الخدمات</a>
-        </nav>
-        <div className="p-4 border-t border-slate-800">
-          <button onClick={handleLogout} className="flex items-center gap-3 text-red-400 hover:text-red-300 transition w-full"><LogOut className="w-5 h-5" /> تسجيل الخروج</button>
-        </div>
-      </aside>
+    <div className="max-w-5xl mx-auto space-y-4">
+      <div className="flex justify-between items-center">
+        <Link href="/admin" className="flex items-center gap-2 text-slate-500 font-bold hover:text-[#0099cc]"><ArrowRight className="w-5 h-5"/> رجوع للوحة التحكم</Link>
+        <button onClick={() => setShowForm(!showForm)} className="bg-[#0099cc] text-white px-4 py-2 rounded-lg font-bold flex items-center gap-2 hover:bg-[#007799] transition">
+          <Plus className="w-4 h-4"/> إضافة خدمة
+        </button>
+      </div>
 
-      <main className="flex-1 flex flex-col">
-        <header className="h-20 bg-white border-b border-slate-200 flex items-center justify-between px-4 md:px-8">
-          <h2 className="text-lg md:text-xl font-bold text-slate-800">إدارة الخدمات</h2>
-          <button onClick={() => setShowAddForm(!showAddForm)} className="bg-[#0099cc] text-white px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 hover:bg-[#007799]">
-            <Plus className="w-4 h-4"/> إضافة خدمة
-          </button>
-        </header>
-
-        <div className="p-4 md:p-8">
-          {showAddForm && (
-            <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm mb-8">
-              <h3 className="font-bold text-lg mb-4">إضافة خدمة جديدة</h3>
-              <form onSubmit={handleAddService} className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <input required type="text" placeholder="اسم الخدمة (إجباري)" value={newService.title} onChange={(e) => setNewService({...newService, title: e.target.value})} className="p-3 border rounded-lg" />
-                <input type="text" placeholder="السعر (اختياري، مثال: 50 ر.س)" value={newService.price} onChange={(e) => setNewService({...newService, price: e.target.value})} className="p-3 border rounded-lg" />
-                <textarea placeholder="وصف الخدمة (اختياري)" value={newService.description} onChange={(e) => setNewService({...newService, description: e.target.value})} className="p-3 border rounded-lg md:col-span-2"></textarea>
-                
-                <div className="md:col-span-2 border-2 border-dashed border-slate-300 rounded-lg p-4 text-center cursor-pointer relative">
-                  <input type="file" accept="image/*" onChange={(e) => setImageFile(e.target.files ? e.target.files[0] : null)} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
-                  <Upload className="w-6 h-6 text-slate-400 mx-auto mb-1" />
-                  <p className="text-sm text-slate-500">{imageFile ? imageFile.name : "اختر صورة للخدمة (اختياري)"}</p>
-                </div>
-
-                <label className="flex items-center gap-2 md:col-span-2">
-                  <input type="checkbox" checked={newService.requires_renewal} onChange={(e) => setNewService({...newService, requires_renewal: e.target.checked})} className="w-5 h-5" />
-                  <span>هذه الخدمة تتطلب تجديد (لها تاريخ انتهاء)</span>
-                </label>
-                <button type="submit" disabled={uploading} className="bg-slate-900 text-white rounded-lg py-3 font-bold md:col-span-2 disabled:opacity-50">
-                  {uploading ? "جاري الحفظ..." : "حفظ الخدمة"}
-                </button>
-              </form>
-            </div>
-          )}
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {services.map((service) => (
-              <div key={service.id} className="bg-white rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between overflow-hidden">
-                {service.image_url && (
-                  <img src={service.image_url} alt={service.title} className="w-full h-32 object-cover" />
-                )}
-                <div className="p-5">
-                  <div className="flex justify-between items-start mb-2">
-                    <h3 className="font-bold text-lg text-slate-800">{service.title}</h3>
-                    {service.price && <span className="text-[#0099cc] font-extrabold whitespace-nowrap">{service.price}</span>}
-                  </div>
-                  <p className="text-slate-500 text-sm mb-4 line-clamp-2">{service.description || 'لا يوجد وصف'}</p>
-                  <div className="flex justify-between items-center pt-4 border-t border-slate-100">
-                    <span className="text-xs text-slate-400">{service.requires_renewal ? "تتطلب تجديد" : "بدون تجديد"}</span>
-                    <button onClick={() => handleDeleteService(service.id)} className="text-red-500 hover:bg-red-50 p-2 rounded-lg transition" title="حذف"><Trash2 className="w-4 h-4"/></button>
-                  </div>
-                </div>
-              </div>
-            ))}
+      {showForm && (
+        <form onSubmit={handleAdd} className="bg-white p-6 rounded-2xl shadow-sm border space-y-4">
+          <h3 className="font-bold text-lg mb-2">إضافة خدمة جديدة</h3>
+          <input required placeholder="اسم الخدمة (إجباري)" value={form.title} onChange={e => setForm({...form, title: e.target.value})} className="w-full p-3 border rounded-lg" />
+          <textarea placeholder="وصف الخدمة" value={form.description} onChange={e => setForm({...form, description: e.target.value})} className="w-full p-3 border rounded-lg" rows={3}></textarea>
+          <input placeholder="السعر (اختياري)" value={form.price} onChange={e => setForm({...form, price: e.target.value})} className="w-full p-3 border rounded-lg" />
+          <div className="border-2 border-dashed p-4 text-center rounded-lg relative bg-slate-50 hover:bg-slate-100 transition cursor-pointer">
+            <input type="file" accept="image/*" onChange={e => setFile(e.target.files?.[0] || null)} className="absolute inset-0 opacity-0 cursor-pointer" />
+            <Upload className="w-6 h-6 mx-auto mb-1 text-slate-400" />
+            <p className="text-sm text-slate-500">{file ? file.name : "اختر صورة للخدمة (اختياري)"}</p>
           </div>
-        </div>
-      </main>
+          <button type="submit" disabled={loading} className="bg-slate-900 text-white px-6 py-3 rounded-lg font-bold w-full disabled:opacity-50">
+            {loading ? "جاري الحفظ..." : "حفظ الخدمة"}
+          </button>
+        </form>
+      )}
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {services.map(s => (
+          <div key={s.id} className="bg-white rounded-xl shadow-sm border overflow-hidden flex flex-col">
+            {s.image_url ? <img src={s.image_url} className="w-full h-32 object-cover" alt={s.title} /> : <div className="w-full h-32 bg-slate-100 flex items-center justify-center text-slate-400">لا توجد صورة</div>}
+            <div className="p-4 flex flex-col flex-grow">
+              <h3 className="font-bold">{s.title}</h3>
+              <p className="text-slate-500 text-sm mb-2">{s.description}</p>
+              <p className="text-[#0099cc] font-bold mb-4 mt-auto">{s.price}</p>
+              <button onClick={() => handleDelete(s.id)} className="text-red-500 text-sm flex items-center gap-1 self-start hover:bg-red-50 px-2 py-1 rounded transition"><Trash2 className="w-4 h-4"/> حذف</button>
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   );
-        }
+                                                }
