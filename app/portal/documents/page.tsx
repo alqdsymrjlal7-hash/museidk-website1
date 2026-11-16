@@ -17,17 +17,13 @@ export default function ClientDocumentsPage() {
       if (!user) return window.location.href = "/login";
       setUser(user);
       
-      // جلب ملفات الطلبات
       const { data: reqData } = await supabase.from("requests").select(`id, created_at, file_url, services (title)`).eq("client_id", user.id).not("file_url", "is", null);
-      
-      // جلب ملفات المعاملات
       const { data: txData } = await supabase.from("transactions").select(`id, created_at, file_url, title`).eq("client_id", user.id).not("file_url", "is", null);
       
       let allDocs: any[] = [];
       
       if (reqData) {
         allDocs = [...allDocs, ...reqData.map((d: any) => {
-          // الحل هنا: التحقق مما إذا كانت services مصفوفة أم كائناً
           const serviceTitle = Array.isArray(d.services) ? d.services[0]?.title : d.services?.title;
           return { 
             id: d.id, 
@@ -86,4 +82,4 @@ export default function ClientDocumentsPage() {
       </div>
     </div>
   );
-    }
+          }
