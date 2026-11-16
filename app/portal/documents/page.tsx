@@ -17,17 +17,17 @@ export default function ClientDocumentsPage() {
       if (!user) return window.location.href = "/login";
       setUser(user);
       
-      // جلب الملفات من الطلبات
+      // جلب ملفات الطلبات
       const { data: reqData } = await supabase.from("requests").select(`id, created_at, file_url, services (title)`).eq("client_id", user.id).not("file_url", "is", null);
       
-      // جلب الملفات من المعاملات
+      // جلب ملفات المعاملات
       const { data: txData } = await supabase.from("transactions").select(`id, created_at, file_url, title`).eq("client_id", user.id).not("file_url", "is", null);
       
       let allDocs: any[] = [];
       
       if (reqData) {
         allDocs = [...allDocs, ...reqData.map((d: any) => {
-          // حل مشكلة المصفوفة: إذا كان services مصفوفة نأخذ أول عنصر، وإذا كان كائناً نأخذه مباشرة
+          // الحل هنا: التحقق مما إذا كانت services مصفوفة أم كائناً
           const serviceTitle = Array.isArray(d.services) ? d.services[0]?.title : d.services?.title;
           return { 
             id: d.id, 
