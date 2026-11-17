@@ -1,8 +1,9 @@
 "use client";
 import { useState, useEffect } from "react";
 import { createClient } from "@supabase/supabase-js";
-import { MessageCircle, Building2, Loader2, LayoutDashboard, Mail, Phone, MapPin, Instagram, Facebook, Globe } from "lucide-react";
+import { MessageCircle, Building2, Loader2, LayoutDashboard, Mail, Phone, MapPin, Instagram, Facebook } from "lucide-react";
 import Link from "next/link";
+import Script from "next/script"; // تم إضافة هذا السطر لتفعيل سكربت الترجمة بشكل صحيح
 
 const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL || "", process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "");
 
@@ -12,11 +13,24 @@ export default function Home() {
   const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
-    supabase.from("services").select("*").eq("is_active", true).then(({ data }) => { 
-      setServices(data || []); 
-      setLoading(false); 
-    });
+    // جلب الخدمات مع طباعة الأخطاء لتشخيص المشكلة
+    const fetchServices = async () => {
+      const { data, error } = await supabase
+        .from("services")
+        .select("*")
+        .eq("is_active", true);
+      
+      if (error) {
+        console.error("خطأ في جلب الخدمات من Supabase:", error.message);
+      } else {
+        setServices(data || []);
+      }
+      setLoading(false);
+    };
+
+    fetchServices();
     
+    // جلب بيانات المستخدم والتحقق من الصلاحيات
     supabase.auth.getUser().then(({ data }) => {
       if (data.user) {
         supabase.from("profiles").select("role").eq("id", data.user.id).single().then(({ data: p }) => {
@@ -32,8 +46,8 @@ export default function Home() {
         <Link href="/"><img src="/images/logo.png" alt="Logo" className="h-12 md:h-14 mix-blend-multiply" /></Link>
         <div className="flex items-center gap-2 md:gap-4">
           
-          {/* زر الترجمة */}
-          <div id="google_translate_element" className="hidden md:block border border-slate-200 rounded-full px-2 py-1"></div>
+          {/* زر الترجمة - تم إظهاره على كل الشاشات */}
+          <div id="google_translate_element" className="block border border-slate-200 rounded-full px-2 py-1 text-sm scale-90 md:scale-100"></div>
           
           {isAdmin && (
             <Link href="/admin" className="bg-slate-900 text-white px-4 md:px-5 py-2 md:py-2.5 rounded-full font-bold flex items-center gap-2 hover:bg-slate-800 transition shadow-lg text-sm md:text-base">
@@ -79,12 +93,12 @@ export default function Home() {
         )}
       </section>
 
-      {/* الفوتر (تم حذف سطر الحقوق) */}
+      {/* الفوتر */}
       <footer className="bg-slate-900 text-slate-300 py-12 mt-auto border-t-4 border-[#0099cc]">
         <div className="max-w-7xl mx-auto px-4 grid grid-cols-1 md:grid-cols-3 gap-8 text-center md:text-right">
           <div>
             <div className="bg-white inline-block p-2 rounded-xl mb-4">
-                <img src="/images/logo.png" className="h-12" />
+                <img src="/images/logo.png" className="h-12" alt="Logo" />
             </div>
             <p className="text-sm text-slate-400">المنصة الرائدة للخدمات الإلكترونية في المملكة العربية السعودية.</p>
           </div>
@@ -113,21 +127,34 @@ export default function Home() {
         </div>
       </footer>
 
-      <div className="fixed bottom-6 left-6 flex flex-col gap-3 z-50">
-        <a href="https://www.facebook.com/share/1eiuZ9JTtQ/" target="_blank" className="bg-[#1877F2] text-white p-3.5 rounded-full shadow-2xl hover:scale-110 transition flex items-center justify-center"><Facebook className="w-6 h-6" /></a>
-        <a href="https://www.instagram.com/museidkalraqmi" target="_blank" className="bg-gradient-to-tr from-[#f09433] via-[#e6683c] to-[#bc1888] text-white p-3.5 rounded-full shadow-2xl hover:scale-110 transition flex items-center justify-center"><Instagram className="w-6 h-6" /></a>
-        <a href="https://wa.me/966535717061" target="_blank" className="bg-[#25D366] text-white p-3.5 rounded-full shadow-2xl hover:scale-110 transition flex items-center justify-center"><MessageCircle className="w-6 h-6" /></a>
+      {/* الأيقونات العائمة */}
+      <div className="fixed bottom-6 left-6 flex flex-col gap-3 z-[9999]">
+        <a href="https://www.facebook.com/share/1eiuZ9JTtQ/" target="_blank" rel="noreferrer" className="bg-[#1877F2] text-white p-3.5 rounded-full shadow-2xl hover:scale-110 transition flex items-center justify-center">
+          <Facebook className="w-6 h-6" />
+        </a>
+        <a href="https://www.instagram.com/museidkalraqmi" target="_blank" rel="noreferrer" className="bg-gradient-to-tr from-[#f09433] via-[#e6683c] to-[#bc1888] text-white p-3.5 rounded-full shadow-2xl hover:scale-110 transition flex items-center justify-center">
+          <Instagram className="w-6 h-6" />
+        </a>
+        <a href="https://wa.me/966535717061" target="_blank" rel="noreferrer" className="bg-[#25D366] text-white p-3.5 rounded-full shadow-2xl hover:scale-110 transition flex items-center justify-center">
+          <MessageCircle className="w-6 h-6" />
+        </a>
       </div>
 
-      {/* سكربت جوجل للترجمة */}
-      <script type="text/javascript">
+      {/* سكربتات جوجل للترجمة - تم تعديلها لتتوافق مع Next.js */}
+      <Script id="google-translate-init" strategy="afterInteractive">
         {`
           function googleTranslateElementInit() {
-            new google.translate.TranslateElement({pageLanguage: 'ar', layout: google.translate.TranslateElement.InlineLayout.SIMPLE}, 'google_translate_element');
+            new google.translate.TranslateElement({
+              pageLanguage: 'ar',
+              layout: google.translate.TranslateElement.InlineLayout.SIMPLE
+            }, 'google_translate_element');
           }
         `}
-      </script>
-      <script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+      </Script>
+      <Script 
+        src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit" 
+        strategy="afterInteractive"
+      />
     </main>
   );
-            }
+               }
